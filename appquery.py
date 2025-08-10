@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -15,10 +9,10 @@ from keras.utils.generic_utils import get_custom_objects
 from tensorflow.keras.models import load_model
 
 # --------------------
-# Google Drive File IDs
+# Read from Streamlit secrets
 # --------------------
-REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
-MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
+REFERENCE_FILE_ID = st.secrets["drive"]["REFERENCE_FILE_ID"]
+MODEL_FILE_ID = st.secrets["drive"]["MODEL_FILE_ID"]
 
 # --------------------
 # Custom activation
@@ -181,12 +175,12 @@ with tab4:
 
         if query_type in ["Gene-based", "Gene + Sample", "Threshold filter"]:
             gene_input = st.text_input(
-                "Enter Gene Name(s) (comma-separated, case-insensitive, supports partial matches)"
+                "Enter Gene Name(s) (comma-separated, case-insensitive)"
             )
 
         if query_type in ["Sample-based", "Gene + Sample", "Threshold filter"]:
             sample_input = st.text_input(
-                "Enter Sample ID(s) (comma-separated, case-insensitive, supports partial matches)"
+                "Enter Sample ID(s) (comma-separated, case-insensitive)"
             )
 
         if query_type == "Threshold filter":
@@ -236,4 +230,3 @@ with tab4:
             )
     else:
         st.warning("Please run the prediction first to generate data.")
-
