@@ -3,16 +3,24 @@ import pandas as pd
 import numpy as np
 import tempfile
 import gdown
+
+# --------------------
+# Flexible import for get_custom_objects
+# --------------------
+try:
+    from tensorflow.keras.utils import get_custom_objects  # Preferred modern import
+except ImportError:
+    from keras.utils import get_custom_objects  # Fallback for older Keras
+
 from keras import backend as K
 from keras.layers import Activation
-from keras.utils.generic_utils import get_custom_objects
 from tensorflow.keras.models import load_model
 
 # --------------------
-# Read from Streamlit secrets
+# Google Drive File IDs
 # --------------------
-REFERENCE_FILE_ID = st.secrets["drive"]["REFERENCE_FILE_ID"]
-MODEL_FILE_ID = st.secrets["drive"]["MODEL_FILE_ID"]
+REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
+MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
 
 # --------------------
 # Custom activation
