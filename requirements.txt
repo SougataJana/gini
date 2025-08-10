@@ -1,8 +1,6 @@
 streamlit
-pandas==1.3.5
-numpy==1.19.5
+pandas==2.2.2
+numpy==1.26.4
 gdown
-tensorflow==2.4.1
-keras==2.4.3
-h5py==2.10.0
-protobuf==3.20.3
+tensorflow==2.15.0
+keras==2.15.0
