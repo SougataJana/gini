@@ -96,7 +96,7 @@ st.markdown(
 )
 
 st.markdown("<h1 style='text-align: center;'>🧬 Gene Expression Predictor</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Upload your normalized gene expression matrix. The app will fetch the reference genes & model automatically from Google Drive.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Upload your normalized gene expression matrix.</p>", unsafe_allow_html=True)
 
 # --------------------
 # Tabs for navigation
