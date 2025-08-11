@@ -19,24 +19,25 @@ from tensorflow.keras.models import load_model
 # --------------------
 # CONFIG & THEME
 # --------------------
-st.set_page_config(page_title="Gene Expression Predictor", layout="centered", page_icon="🧬")
+st.set_page_config(page_title="Gene Expression Predictor", layout="wide", page_icon="🧬")
 
 st.markdown("""
 <style>
-/* Background Gradient - brighter colors */
+/* Background Bright */
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #b2fefa 0%, #f9f9b6 100%);
+    background: #ffffff;
+    color: black;
 }
 
-/* Fancy Header with brighter colors */
+/* Titles & Text */
 .big-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: bold;
-    color: white;
+    color: black;
     text-align: center;
     padding: 20px;
     margin-bottom: 10px;
-    background: linear-gradient(270deg, #00b894, #0984e3, #fdcb6e);
+    background: linear-gradient(270deg, #a8e6cf, #dcedc1, #ffd3b6);
     background-size: 600% 600%;
     animation: gradientAnimation 10s ease infinite;
     border-radius: 12px;
@@ -47,31 +48,44 @@ st.markdown("""
     100% {background-position: 0% 50%;}
 }
 
-/* Step Card with more visible shadow */
+/* Step Card */
 .step-card {
-    background-color: rgba(255,255,255,0.97);
+    background-color: rgba(255,255,255,1);
     padding: 20px;
     margin-top: 15px;
     border-radius: 12px;
-    box-shadow: 0px 6px 20px rgba(0,0,0,0.15);
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.15);
     transition: transform 0.2s;
 }
 .step-card:hover {
     transform: scale(1.01);
 }
 
-/* Button Style - brighter green */
+/* Buttons */
 .stButton>button {
-    background: linear-gradient(90deg, #00c853, #64dd17);
+    background: linear-gradient(90deg, #388e3c, #66bb6a);
     color: white;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 18px;
     border-radius: 8px;
     padding: 10px 20px;
     transition: background 0.3s ease-in-out;
 }
 .stButton>button:hover {
-    background: linear-gradient(90deg, #64dd17, #00c853);
+    background: linear-gradient(90deg, #66bb6a, #388e3c);
+}
+
+/* Dataframes alternating row colors */
+.dataframe tbody tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+.dataframe tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+/* Table text size */
+[data-testid="stDataFrame"] div {
+    font-size: 16px !important;
+    color: black !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -158,6 +172,10 @@ if user_file:
     reference_genes, reference_genes_pred = load_reference_genes()
     user_matrix = pd.read_csv(user_file, index_col=0)
 
+    # 📄 Dataset Preview
+    st.write("📄 **Uploaded Dataset Preview:**")
+    st.dataframe(user_matrix.head())
+
     # STEP 2: CHECK
     st.markdown("<div class='step-card'>", unsafe_allow_html=True)
     st.subheader("🔍 Step 2: Check Gene Compatibility")
@@ -182,9 +200,9 @@ if user_file:
             st.success("✅ Prediction Complete!")
             st.dataframe(merged_df.head())
 
-            # Add option to download full merged_df
+            # 📥 Direct Download of Merged DF
             csv_full = merged_df.to_csv().encode('utf-8')
-            st.download_button("💾 Download Full Predicted Dataset", csv_full, "merged_prediction.csv", "text/csv")
+            st.download_button("💾 Download Full Merged Dataset", csv_full, "merged_prediction.csv", "text/csv")
     st.markdown("</div>", unsafe_allow_html=True)
 
     # STEP 4: QUERY
