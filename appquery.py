@@ -23,12 +23,12 @@ st.set_page_config(page_title="Gene Expression Predictor", layout="centered", pa
 
 st.markdown("""
 <style>
-/* Background Gradient */
+/* Background Gradient - brighter colors */
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #f0f4ff 0%, #e0f7fa 100%);
+    background: linear-gradient(135deg, #b2fefa 0%, #f9f9b6 100%);
 }
 
-/* Animated Title */
+/* Fancy Header with brighter colors */
 .big-title {
     font-size: 2rem;
     font-weight: bold;
@@ -36,9 +36,9 @@ st.markdown("""
     text-align: center;
     padding: 20px;
     margin-bottom: 10px;
-    background: linear-gradient(270deg, #6a11cb, #2575fc, #6a11cb);
+    background: linear-gradient(270deg, #00b894, #0984e3, #fdcb6e);
     background-size: 600% 600%;
-    animation: gradientAnimation 8s ease infinite;
+    animation: gradientAnimation 10s ease infinite;
     border-radius: 12px;
 }
 @keyframes gradientAnimation {
@@ -47,39 +47,31 @@ st.markdown("""
     100% {background-position: 0% 50%;}
 }
 
-/* Card Style */
+/* Step Card with more visible shadow */
 .step-card {
-    background-color: rgba(255,255,255,0.95);
+    background-color: rgba(255,255,255,0.97);
     padding: 20px;
     margin-top: 15px;
     border-radius: 12px;
-    box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0px 6px 20px rgba(0,0,0,0.15);
     transition: transform 0.2s;
 }
 .step-card:hover {
     transform: scale(1.01);
 }
 
-/* Button Style */
+/* Button Style - brighter green */
 .stButton>button {
-    background: linear-gradient(90deg, #2575fc, #6a11cb);
+    background: linear-gradient(90deg, #00c853, #64dd17);
     color: white;
     font-size: 16px;
+    font-weight: bold;
     border-radius: 8px;
     padding: 10px 20px;
     transition: background 0.3s ease-in-out;
 }
 .stButton>button:hover {
-    background: linear-gradient(90deg, #6a11cb, #2575fc);
-}
-
-/* Fade-in Animation */
-.fade-in {
-    animation: fadeIn 0.8s ease-in-out;
-}
-@keyframes fadeIn {
-    0% {opacity: 0; transform: translateY(10px);}
-    100% {opacity: 1; transform: translateY(0);}
+    background: linear-gradient(90deg, #64dd17, #00c853);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -105,6 +97,8 @@ It automatically:
 - First column must contain **sample IDs**.  
 - Gene names must be **column headers**.  
 - The matrix should be **normalized** before uploading.  
+
+---
 
 ✅ *The server automatically downloads the correct model and reference gene list — you only need to upload your file.*
 """)
@@ -186,40 +180,30 @@ if user_file:
             merged_df = predict_and_merge(submatrix, reference_genes, model)
             st.session_state["merged_df"] = merged_df
             st.success("✅ Prediction Complete!")
-            st.markdown("<div class='fade-in'>", unsafe_allow_html=True)
             st.dataframe(merged_df.head())
-            st.markdown("</div>", unsafe_allow_html=True)
 
-            # ✅ Download full merged DataFrame
+            # Add option to download full merged_df
             csv_full = merged_df.to_csv().encode('utf-8')
-            st.download_button(
-                label="💾 Download Full Merged Dataset",
-                data=csv_full,
-                file_name="merged_dataset.csv",
-                mime="text/csv"
-            )
+            st.download_button("💾 Download Full Predicted Dataset", csv_full, "merged_prediction.csv", "text/csv")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # STEP 4: QUERY (Collapsible)
+    # STEP 4: QUERY
     if "merged_df" in st.session_state:
-        with st.expander("🔍 Step 4: Query Results", expanded=False):
-            st.markdown("<div class='step-card'>", unsafe_allow_html=True)
-            gene_input = st.text_input("Search Gene Name (case-insensitive)")
-            sample_input = st.text_input("Search Sample ID (case-insensitive)")
-            result_df = st.session_state["merged_df"]
+        st.markdown("<div class='step-card'>", unsafe_allow_html=True)
+        st.subheader("🔍 Step 4: Query Results")
+        gene_input = st.text_input("Search Gene Name (case-insensitive)")
+        sample_input = st.text_input("Search Sample ID (case-insensitive)")
+        result_df = st.session_state["merged_df"]
 
-            if gene_input:
-                result_df = result_df[[col for col in result_df.columns if gene_input.lower() in col.lower()]]
-            if sample_input:
-                result_df = result_df.loc[[idx for idx in result_df.index if sample_input.lower() in idx.lower()]]
+        if gene_input:
+            result_df = result_df[[col for col in result_df.columns if gene_input.lower() in col.lower()]]
+        if sample_input:
+            result_df = result_df.loc[[idx for idx in result_df.index if sample_input.lower() in idx.lower()]]
 
-            st.markdown("<div class='fade-in'>", unsafe_allow_html=True)
-            st.dataframe(result_df)
-            st.markdown("</div>", unsafe_allow_html=True)
-
-            csv = result_df.to_csv().encode('utf-8')
-            st.download_button("💾 Download Query Result", csv, "query_result.csv", "text/csv")
-            st.markdown("</div>", unsafe_allow_html=True)
+        st.dataframe(result_df)
+        csv = result_df.to_csv().encode('utf-8')
+        st.download_button("💾 Download Query Result", csv, "query_result.csv", "text/csv")
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # FOOTER
 st.markdown("---")
