@@ -174,7 +174,7 @@ st.markdown(
 st.markdown("<h2>How it works:</h2>", unsafe_allow_html=True)
 st.markdown(
     """
-    1.  **Upload:** You provide a gene expression matrix as a CSV file.
+    1.  **Upload:** You provide a  normalized gene expression matrix as a CSV file.
     2.  **Validation:** The app checks if your file contains a specific set of 12,712 reference genes required by the model.
     3.  **Prediction:** If the genes match, the app loads the trained neural network model and predicts the expression of a wider set of genes.
     4.  **Download & Query:** The complete matrix (original + predicted genes) is available for download and interactive querying.
