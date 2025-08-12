@@ -205,6 +205,33 @@ tab1, tab2, tab3, tab4 = st.tabs(["📂 Upload & Check", "🔮 Prediction", "�
 # --------------------
 with tab1:
     st.header("Step 1: Upload Your Matrix")
+    
+    # --------------------
+    # Sample Data Download Section
+    # --------------------
+    st.markdown("### Don't have a file? Download a sample dataset.")
+    st.markdown("Use this file to understand the required input format and test the application.")
+
+    try:
+        # The file name is updated here to your specified file
+        with open("matrix_12712_genes.csv", "rb") as f:
+            sample_csv_data = f.read()
+
+        st.download_button(
+            label="Download Sample CSV",
+            data=sample_csv_data,
+            file_name="matrix_12712_genes.csv",
+            mime="text/csv",
+            key="sample_download_button"
+        )
+    except FileNotFoundError:
+        st.warning("Sample file not found. Please ensure 'matrix_12712_genes.csv' is in the same directory.")
+    
+    st.markdown("---")
+    # --------------------
+    # End of Sample Data Section
+    # --------------------
+
     user_file = st.file_uploader("Upload Your CSV File Here", type=["csv"])
     if user_file:
         with st.spinner("Processing file and fetching reference genes..."):
@@ -323,6 +350,7 @@ with tab4:
 
         if st.button("Run Query", key="run_query_button"):
             filtered_df = df.copy()
+            original_columns = df.columns
 
             # Handle gene filtering
             if gene_input:
@@ -344,23 +372,25 @@ with tab4:
             
             # Handle threshold filtering
             if query_type == "Threshold filter" and threshold_value is not None:
+                # Use a boolean mask to filter rows based on the condition
                 if comparison_type == ">":
-                    filtered_df = df[(df[filtered_df.columns] > threshold_value).any(axis=1)]
+                    filtered_rows = (df[filtered_df.columns] > threshold_value).any(axis=1)
                 elif comparison_type == ">=":
-                    filtered_df = df[(df[filtered_df.columns] >= threshold_value).any(axis=1)]
+                    filtered_rows = (df[filtered_df.columns] >= threshold_value).any(axis=1)
                 elif comparison_type == "<":
-                    filtered_df = df[(df[filtered_df.columns] < threshold_value).any(axis=1)]
+                    filtered_rows = (df[filtered_df.columns] < threshold_value).any(axis=1)
                 elif comparison_type == "<=":
-                    filtered_df = df[(df[filtered_df.columns] <= threshold_value).any(axis=1)]
+                    filtered_rows = (df[filtered_df.columns] <= threshold_value).any(axis=1)
                 elif comparison_type == "==":
-                    filtered_df = df[(df[filtered_df.columns] == threshold_value).any(axis=1)]
+                    filtered_rows = (df[filtered_df.columns] == threshold_value).any(axis=1)
                 
-                # Re-apply sample/gene filters if threshold was the primary query
-                if gene_input and not sample_input:
+                # Apply the row filter to the original DataFrame
+                filtered_df = df[filtered_rows]
+                
+                # Re-apply the column filter if gene_input was provided
+                if gene_input:
+                    matching_genes = [col for col in original_columns if any(q in col.lower() for q in gene_list)]
                     filtered_df = filtered_df[matching_genes]
-                if sample_input and not gene_input:
-                    matching_samples = [idx for idx in df.index if any(q in str(idx).lower() for q in sample_list)]
-                    filtered_df = filtered_df.loc[matching_samples]
 
 
             if not filtered_df.empty:
