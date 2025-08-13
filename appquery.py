@@ -225,7 +225,7 @@ with tab1:
             key="sample_download_button"
         )
     except FileNotFoundError:
-        st.warning("Sample file not found. Please ensure 'matrix_12712_genes.csv' is in the same directory.")
+        st.warning("Sample file not found. Please ensure 'sample_csv_for_testing.csv' is in the same directory.")
     
     st.markdown("---")
     # --------------------
