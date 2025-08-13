@@ -177,7 +177,7 @@ st.divider()
 # --------------------
 # Tabs for navigation
 # --------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📂 Upload & Check", "🔮 Prediction", "📥 Download", "🔍 Query Results", "📖 Tutorial"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📂 Upload & Check", "🧠 Prediction", "📥 Download", "🔍 Query Results", "📖 Tutorial"])
 
 # --------------------
 # Tab 1: Upload & Check
