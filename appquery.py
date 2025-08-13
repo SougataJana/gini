@@ -189,7 +189,7 @@ with tab1:
     # Gene List Info and HUGO Link
     # --------------------
     st.markdown("### Reference Gene Information")
-    st.markdown("Please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/)")
+    st.markdown("Please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/tools/multi-symbol-checker/)")
 
     # Load reference genes for display
     ref_genes, ref_genes_pred = load_reference_genes()
