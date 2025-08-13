@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import tempfile
 import gdown
+import os
 
 # --------------------
 # Flexible import for get_custom_objects
@@ -171,34 +172,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("<h2>How it works:</h2>", unsafe_allow_html=True)
-st.markdown(
-    """
-    1.  **Upload:** You provide a  normalized gene expression matrix as a CSV file.
-    2.  **Validation:** The app checks if your file contains a specific set of 12,712 reference genes required by the model.
-    3.  **Prediction:** If the genes match, the app loads the trained neural network model and predicts the expression of a wider set of genes.
-    4.  **Download & Query:** The complete matrix (original + predicted genes) is available for download and interactive querying.
-    """
-)
-
-st.markdown("<h2>Accepted Input Format:</h2>", unsafe_allow_html=True)
-st.markdown(
-    """
-    -   **File Type:** CSV (`.csv`)
-    -   **Structure:**
-        -   The first column must be the **Sample IDs** (it will be used as the index).
-        -   The subsequent columns must be the **Gene Names**.
-        -   The body of the matrix should contain the **normalized gene expression values**.
-    -   **Important:** Your matrix must contain all 12,712 genes from our reference list to be processed. The app will inform you if any are missing.
-    """
-)
-
 st.divider()
 
 # --------------------
 # Tabs for navigation
 # --------------------
-tab1, tab2, tab3, tab4 = st.tabs(["📂 Upload & Check", "🔮 Prediction", "📥 Download", "🔍 Query Results"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📂 Upload & Check", "🔮 Prediction", "📥 Download", "🔍 Query Results", "📖 Tutorial"])
 
 # --------------------
 # Tab 1: Upload & Check
@@ -206,6 +185,27 @@ tab1, tab2, tab3, tab4 = st.tabs(["📂 Upload & Check", "🔮 Prediction", "�
 with tab1:
     st.header("Step 1: Upload Your Matrix")
     
+    # --------------------
+    # Gene List Info and HUGO Link
+    # --------------------
+    st.markdown("### Reference Gene Information")
+    st.markdown("Please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/)")
+
+    # Load reference genes for display
+    ref_genes, ref_genes_pred = load_reference_genes()
+
+    if ref_genes_pred:
+        with st.expander(f"View the {len(ref_genes_pred)} required reference genes"):
+            st.markdown(
+                "Your uploaded matrix must contain these genes to proceed. "
+                "The order does not matter as the app will automatically re-index them."
+            )
+            st.dataframe(pd.DataFrame(ref_genes_pred, columns=['Required Gene Names']))
+    st.markdown("---")
+    # --------------------
+    # End of Gene List Info
+    # --------------------
+
     # --------------------
     # Sample Data Download Section
     # --------------------
@@ -234,29 +234,35 @@ with tab1:
 
     user_file = st.file_uploader("Upload Your CSV File Here", type=["csv"])
     if user_file:
+        # Check if the uploaded file has a .csv extension
+        file_extension = os.path.splitext(user_file.name)[1]
+        if file_extension.lower() != '.csv':
+            st.error("Invalid file format. Please upload a CSV file with a '.csv' extension.")
+            st.stop()
+
         with st.spinner("Processing file and fetching reference genes..."):
             try:
                 user_matrix = pd.read_csv(user_file, index_col=0)
-                reference_genes, reference_genes_pred = load_reference_genes()
                 
-                if reference_genes is None or reference_genes_pred is None:
+                # Check if reference genes were loaded successfully
+                if ref_genes is None or ref_genes_pred is None:
                     st.error("Could not load reference genes. Please try again later.")
                     st.stop()
                 
                 st.write("### Uploaded Data Preview:")
                 st.dataframe(user_matrix.head())
                 
-                submatrix, status, missing_genes = create_submatrix(user_matrix, reference_genes_pred)
+                submatrix, status, missing_genes = create_submatrix(user_matrix, ref_genes_pred)
 
                 st.write("### Compatibility Check:")
                 if status == "equal":
                     st.success("✅ Success! Your gene set matches the required reference genes exactly. Ready for prediction.")
                     st.session_state["submatrix"] = submatrix
-                    st.session_state["reference_genes"] = reference_genes
+                    st.session_state["reference_genes"] = ref_genes
                 elif status == "extra":
                     st.info("ℹ️ Your matrix contains more genes than required. The app will automatically subset the data to match the reference gene list. Ready for prediction.")
                     st.session_state["submatrix"] = submatrix
-                    st.session_state["reference_genes"] = reference_genes
+                    st.session_state["reference_genes"] = ref_genes
                 elif status == "missing":
                     st.error(f"❌ Your matrix is missing {len(missing_genes)} required genes. Prediction cannot proceed. Please upload a file with all necessary genes.")
                     st.write("**Missing Genes:**")
@@ -412,3 +418,58 @@ with tab4:
 
 st.markdown("---")
 st.markdown("<p style='text-align: center; color: gray;'>Built with Streamlit & Keras</p>", unsafe_allow_html=True)
+
+# --------------------
+# Tutorial Tab - NEW CODE
+# --------------------
+with tab5:
+    st.header("📖 Tutorial: How to Use the MPGEM App")
+
+    st.markdown(
+        """
+        Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.
+        """
+    )
+    
+    st.subheader("Step 1: Upload & Check")
+    st.markdown(
+        """
+        1.  **File Format:** Ensure your gene expression data is in a CSV (`.csv`) file format. The first column should contain your sample IDs, and the subsequent columns should be your gene names. The body of the matrix should contain normalized gene expression values.
+        2.  **Download Sample Data:** If you are unsure about the format, use the **Download Sample CSV** button to get a correctly formatted example file.
+        3.  **Gene List Validation:** The app requires a specific set of 12,712 genes for its prediction model. You can view this list by expanding the **View the required reference genes** section.
+        4.  **Upload your file:** Click **"Upload Your CSV File Here"** to upload your gene expression matrix. The app will automatically check for format and gene compatibility.
+            * **Success:** If your file is compatible, a success message will appear.
+            * **Missing Genes:** If genes are missing, an error will be displayed along with a list of the missing genes.
+            * **Wrong Format:** An error will be shown if the file is not a valid CSV.
+        """
+    )
+
+    st.subheader("Step 2: Prediction")
+    st.markdown(
+        """
+        1.  After a successful compatibility check in Step 1, navigate to this tab.
+        2.  Click the **"🚀 Run Model Prediction"** button.
+        3.  The app will download the pre-trained deep learning model and use it to predict the expression values for the remaining genes in our full reference list.
+        4.  This process may take a few minutes. Once complete, a preview of the combined matrix (your original data + the predicted data) will be displayed.
+        """
+    )
+
+    st.subheader("Step 3: Download")
+    st.markdown(
+        """
+        1.  Once the prediction is complete, the full gene expression matrix is ready.
+        2.  Click the **"💾 Download Full Predictions CSV"** button to download the complete file, including all predicted gene expression values, to your local computer.
+        """
+    )
+
+    st.subheader("Step 4: Query Results")
+    st.markdown(
+        """
+        1.  This tab allows you to interactively filter and explore the prediction results.
+        2.  **Select a Query Type:** Choose from `Gene-based`, `Sample-based`, `Gene + Sample`, or `Threshold filter`.
+        3.  **Enter your query:** Use the text boxes to enter comma-separated gene names or sample IDs. The search is case-insensitive.
+        4.  **Run the query:** Click **"Run Query"**. The filtered results will be displayed in a table below, and you will have the option to download the query result as a new CSV file.
+        """
+    )
+
+    st.info("If you encounter any issues, please refer back to the instructions in this tutorial or check the file format of your input data.")
