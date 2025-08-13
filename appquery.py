@@ -198,7 +198,7 @@ with tab1:
         with st.expander(f"View the {len(ref_genes_pred)} required reference genes"):
             st.markdown(
                 "Your uploaded matrix must contain these genes to proceed. "
-                "The order does not matter as the app will automatically re-index them."
+                "The app will automatically re-order the genes to match the model's input format, so the original order of your genes will not be maintained in the submatrix."
             )
             st.dataframe(pd.DataFrame(ref_genes_pred, columns=['Required Gene Names']))
     st.markdown("---")
