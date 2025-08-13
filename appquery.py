@@ -220,7 +220,7 @@ with tab1:
         st.download_button(
             label="Download Sample CSV",
             data=sample_csv_data,
-            file_name="matrix_12712_genes.csv",
+            file_name="sample_csv_for_testing.csv",
             mime="text/csv",
             key="sample_download_button"
         )
