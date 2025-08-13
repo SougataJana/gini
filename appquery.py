@@ -214,7 +214,7 @@ with tab1:
 
     try:
         # The file name is updated here to your specified file
-        with open("matrix_12712_genes.csv", "rb") as f:
+        with open("sample_csv_for_testing.csv", "rb") as f:
             sample_csv_data = f.read()
 
         st.download_button(
