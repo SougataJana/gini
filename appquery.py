@@ -57,7 +57,7 @@ def load_mpgem_samples():
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
         gdown.download(f"https://drive.google.com/uc?id={MPGEM_SAMPLES_FILE_ID}", temp_path, quiet=True)
         
-        mpgem_samples = pd.read_csv(temp_path, header=None)[1].tolist()
+        mpgem_samples = pd.read_csv(temp_path, header=None)[0].tolist()
         return mpgem_samples
     except Exception as e:
         st.error(f"Error downloading MPGEM samples list: {e}")
