@@ -22,8 +22,6 @@ from tensorflow.keras.models import load_model
 # --------------------
 REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
 MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
-
-# --- MPGEM Sample List File ID ---
 MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 
 # --------------------
@@ -56,7 +54,7 @@ def load_mpgem_samples():
     try:
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
         gdown.download(f"https://drive.google.com/uc?id={MPGEM_SAMPLES_FILE_ID}", temp_path, quiet=True)
-        
+        # Assuming the sample IDs are in the first column
         mpgem_samples = pd.read_csv(temp_path, header=None)[0].tolist()
         return mpgem_samples
     except Exception as e:
@@ -112,7 +110,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for a cleaner, modern look
+# Custom CSS for a cleaner, modern look (UPDATED FOR DARK MODE)
 st.markdown(
     """
     <style>
@@ -185,6 +183,20 @@ st.markdown(
         color: #5f6368;
         text-align: center;
     }
+    
+    /* --- DARK MODE STYLES --- */
+    @media (prefers-color-scheme: dark) {
+        .main {
+            background-color: #0e1117;
+        }
+        .header-section {
+            background-color: #1c2b38;
+            box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+        }
+        .header-section p {
+            color: #d3d3d3; /* A light gray for dark mode */
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -226,6 +238,19 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 with tab1:
     st.header("Step 1: Upload & Validate Your Matrix")
 
+    # --- Debugging Tool for MPGEM Samples ---
+    st.subheader("MPGEM Sample List Debugging")
+    with st.expander("Show MPGEM Sample List Status"):
+        mpgem_samples_check = load_mpgem_samples()
+        if mpgem_samples_check is not None:
+            st.success(f"✅ Successfully loaded {len(mpgem_samples_check)} sample IDs from Google Drive.")
+            st.write("First 10 sample IDs:")
+            st.code("\n".join(mpgem_samples_check[:10]))
+        else:
+            st.error("❌ Failed to load MPGEM sample IDs. Please check the Google Drive sharing settings for the file with ID: `1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO`.")
+            st.warning("Ensure the file is publicly shared with 'Anyone with the link' and is a valid CSV.")
+    st.divider()
+
     st.markdown("### Reference Gene Information")
     st.info("To ensure compatibility, please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/tools/multi-symbol-checker/)")
 
@@ -245,12 +270,9 @@ with tab1:
         user_file = st.file_uploader("Upload Your CSV File Here", type=["csv"])
 
     with col2:
-        # --- Sample Data Download Section - Your code block is here ---
-        st.markdown("### Don't have a file? Download a sample dataset.")
-        st.markdown("Use this file to understand the required input format and test the application.")
-
+        st.markdown("### Or use sample data")
+        st.markdown("Download a correctly formatted file to test the app.")
         try:
-            # The file name is updated here to your specified file
             with open("sample_csv_for_testing.csv", "rb") as f:
                 sample_csv_data = f.read()
 
@@ -263,9 +285,6 @@ with tab1:
             )
         except FileNotFoundError:
             st.warning("Sample file not found. Please ensure 'sample_csv_for_testing.csv' is in the same directory.")
-
-        st.markdown("---")
-        # -------------------------------------------------------------
     
     if user_file:
         file_extension = os.path.splitext(user_file.name)[1]
@@ -284,7 +303,6 @@ with tab1:
                 st.write("### Uploaded Data Preview:")
                 st.dataframe(user_matrix.head())
 
-                # --- Data Statistics and Sample Overlap Check ---
                 st.write("### Data Statistics and Sample Overlap")
                 n_samples, n_genes = user_matrix.shape
                 st.markdown(f"- **Number of Samples in your Matrix:** {n_samples}")
@@ -301,7 +319,6 @@ with tab1:
                     st.markdown(f"- **Samples already in MPGEM reference list:** {len(overlapping_samples)}")
                     st.markdown(f"- **New Samples in your Matrix:** {len(non_overlapping_samples)}")
                     
-                    # Overlapping Samples Download
                     if overlapping_samples:
                         with st.expander("View and Download Overlapping Sample IDs"):
                             overlapping_df = pd.DataFrame(list(overlapping_samples), columns=["Overlapping Sample IDs"])
@@ -315,7 +332,6 @@ with tab1:
                                 key="download_overlapping"
                             )
                     
-                    # Non-overlapping Samples Download
                     if non_overlapping_samples:
                         with st.expander("View and Download New Sample IDs"):
                             non_overlapping_df = pd.DataFrame(list(non_overlapping_samples), columns=["New Sample IDs"])
@@ -329,7 +345,6 @@ with tab1:
                                 key="download_new_samples"
                             )
 
-                # Download MPGEM Sample List
                 st.markdown("---")
                 st.subheader("MPGEM Reference Data")
                 st.info("You can download the full list of MPGEM samples for your reference.")
@@ -345,7 +360,6 @@ with tab1:
                 
                 st.divider()
                 
-                # Gene compatibility check continues as before
                 submatrix, status, missing_genes = create_submatrix(user_matrix, ref_genes_pred)
 
                 st.write("### Compatibility Check:")
