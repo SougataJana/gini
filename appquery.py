@@ -529,7 +529,10 @@ with tab5:
     st.header("📚 Tutorial: How to Use the MPGEM App")
     
 
-    st.markdown("Watch this video for a quick walkthrough of the app's features.")
+    video_path = get_video_path()
+    if video_path:
+        st.video(video_path)
+
     
 
     st.video('https://drive.google.com/uc?export=download&id=1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL')
