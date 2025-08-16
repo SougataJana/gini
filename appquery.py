@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -14,8 +15,6 @@ REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
 MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
 MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
-
-# --- NEW: Normalization Reference Matrix ID ---
 NORMALIZATION_REFERENCE_FILE_ID = "1YyfzzbwCPZPhO6tg1Kt3-snf1iTICgOw"
 
 # --------------------
@@ -118,7 +117,7 @@ def predict_and_merge(submatrix, reference_genes, model):
     return pd.concat([submatrix, predicted_df], axis=1)
 
 # --------------------
-# Quantile Normalization Pipeline (Dask compatible)
+# Quantile Normalization Pipeline
 # --------------------
 def find_common_genes(user_df, reference_df):
     user_genes = set(user_df.columns)
@@ -292,22 +291,96 @@ st.markdown(
 st.divider()
 
 # --------------------
-# Tabs for navigation - NEW TAB ADDED HERE
+# Tabs for navigation - UPDATED ORDER
 # --------------------
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "📊 Normalization",  # NEW FIRST TAB
     "📁 Upload & Check", 
     "🧠 Prediction", 
-    "📊 Normalization",  # NEW TAB
     "💾 Download", 
     "🔎 Query Results", 
     "📚 Tutorial"
 ])
 
 # --------------------
-# Tab 1: Upload & Check
+# Tab 1: Normalization - NEW CONTENT
 # --------------------
 with tab1:
-    st.header("Step 1: Upload & Validate Your Matrix")
+    st.header("Step 1: Quantile Normalization")
+    st.info("This feature will normalize your uploaded data against a large reference matrix. The normalized data is required for the prediction step.")
+
+    st.subheader("Upload Your Matrix for Normalization")
+    user_file_norm = st.file_uploader("Upload CSV File for Normalization Here", type=["csv"], key="normalization_uploader")
+    
+    if user_file_norm:
+        file_extension = os.path.splitext(user_file_norm.name)[1]
+        if file_extension.lower() != '.csv':
+            st.error("Invalid file format. Please upload a CSV file with a '.csv' extension.")
+            st.stop()
+        
+        # New chunking option for normalization upload
+        st.markdown("---")
+        use_chunks_norm = st.checkbox("Use memory-efficient loading for large normalization files?", value=False)
+        
+        with st.spinner("Processing file..."):
+            try:
+                if use_chunks_norm:
+                    st.info("Reading file in chunks for memory-efficient processing.")
+                    chunks = pd.read_csv(user_file_norm, chunksize=1000, index_col=0)
+                    user_matrix_norm = pd.concat(chunks)
+                else:
+                    user_matrix_norm = pd.read_csv(user_file_norm, index_col=0)
+                
+                st.write("### Uploaded Data Preview:")
+                st.dataframe(user_matrix_norm.head())
+                st.session_state["user_matrix_norm"] = user_matrix_norm
+
+                st.info("Matrix uploaded successfully. You can now run normalization.")
+                
+            except pd.errors.ParserError:
+                st.error("Error parsing the CSV file. Please ensure it is a valid CSV with correct delimiters.")
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {e}")
+
+    st.markdown("---")
+    
+    if "user_matrix_norm" not in st.session_state:
+        st.warning("Please upload a matrix in the uploader above to proceed with normalization.")
+    else:
+        user_matrix_norm = st.session_state["user_matrix_norm"]
+        
+        st.write("### Normalization Status")
+        st.markdown("- **User Matrix Loaded:** ✅ Yes")
+        
+        if st.button("📈 Run Normalization"):
+            with st.spinner("Downloading reference matrix and running normalization... This may take a few minutes."):
+                reference_df = load_normalization_reference_matrix()
+                if reference_df is not None:
+                    normalized_df = quantile_normalize_pipeline(user_matrix_norm, reference_df)
+                    
+                    if normalized_df is not None:
+                        st.session_state["normalized_df"] = normalized_df
+                        st.success("✅ Normalization complete! The normalized data is ready.")
+                        st.write("### Normalized Data Preview:")
+                        st.dataframe(normalized_df.head())
+                        
+                        csv_normalized = normalized_df.to_csv().encode('utf-8')
+                        st.download_button(
+                            label="💾 Download Normalized Matrix CSV",
+                            data=csv_normalized,
+                            file_name="normalized_matrix.csv",
+                            mime="text/csv",
+                            key="download_normalized_csv"
+                        )
+                else:
+                    st.error("Normalization failed. Could not load reference matrix.")
+
+# --------------------
+# Tab 2: Upload & Check (Old Tab 1)
+# --------------------
+with tab2:
+    st.header("Step 2: Upload & Check")
+    st.warning("This tab is for uploading the matrix for prediction. Please ensure your matrix is already normalized.")
 
     st.markdown("### Reference Gene Information")
     st.info("To ensure compatibility, please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/tools/multi-symbol-checker/)")
@@ -325,11 +398,15 @@ with tab1:
     col1, col2 = st.columns([1.5, 1])
     
     with col1:
-        user_file = st.file_uploader("Upload Your CSV File Here", type=["csv"])
-        st.markdown("---")
-        # New chunking option
-        use_chunks = st.checkbox("Use memory-efficient loading for large files?", value=False)
+        # User file for prediction
+        if "normalized_df" in st.session_state:
+            st.success("Normalized data is available from Step 1. No need to upload a new file.")
+            user_matrix = st.session_state["normalized_df"]
+        else:
+            user_file = st.file_uploader("Upload Your CSV File Here", type=["csv"], key="prediction_uploader")
+            user_matrix = pd.read_csv(user_file, index_col=0) if user_file else None
 
+        st.markdown("---")
 
     with col2:
         st.markdown("### Or use sample data")
@@ -348,26 +425,9 @@ with tab1:
         except FileNotFoundError:
             st.warning("Sample file not found. Please ensure 'sample_csv_for_testing.csv' is in the same directory.")
     
-    if user_file:
-        file_extension = os.path.splitext(user_file.name)[1]
-        if file_extension.lower() != '.csv':
-            st.error("Invalid file format. Please upload a CSV file with a '.csv' extension.")
-            st.stop()
-
+    if user_matrix is not None:
         with st.spinner("Processing file and fetching reference genes..."):
             try:
-                # Modified to handle chunking
-                if use_chunks:
-                    st.info("Reading file in chunks for memory-efficient processing.")
-                    chunks = pd.read_csv(user_file, chunksize=1000, index_col=0)
-                    user_matrix = pd.concat(chunks)
-                else:
-                    user_matrix = pd.read_csv(user_file, index_col=0)
-
-                if ref_genes is None or ref_genes_pred is None:
-                    st.error("Could not load reference genes. Please try again later.")
-                    st.stop()
-                
                 st.write("### Uploaded Data Preview:")
                 st.dataframe(user_matrix.head())
 
@@ -435,12 +495,10 @@ with tab1:
                     st.success("✅ Success! Your gene set matches the required reference genes exactly. Ready for prediction.")
                     st.session_state["submatrix"] = submatrix
                     st.session_state["reference_genes"] = ref_genes
-                    st.session_state["user_matrix"] = user_matrix
                 elif status == "extra":
                     st.info("ℹ️ Your matrix contains more genes than required. The app will automatically subset the data to match the reference gene list. Ready for prediction.")
                     st.session_state["submatrix"] = submatrix
                     st.session_state["reference_genes"] = ref_genes
-                    st.session_state["user_matrix"] = user_matrix
                 elif status == "missing":
                     st.error(f"❌ Your matrix is missing {len(missing_genes)} required genes. Prediction cannot proceed. Please upload a file with all necessary genes.")
                     st.write("**Missing Genes:**")
@@ -453,10 +511,10 @@ with tab1:
                 st.error(f"An unexpected error occurred: {e}")
 
 # --------------------
-# Tab 2: Prediction
+# Tab 3: Prediction (Old Tab 2)
 # --------------------
-with tab2:
-    st.header("Step 2: Run Prediction")
+with tab3:
+    st.header("Step 3: Run Prediction")
     if "submatrix" in st.session_state:
         st.info("Click the button below to download the model and perform the gene expression prediction.")
         if st.button("🚀 Run Model Prediction"):
@@ -477,50 +535,7 @@ with tab2:
         st.warning("Please upload a valid gene expression matrix in the 'Upload & Check' tab first.")
 
 # --------------------
-# Tab 3: Normalization
-# --------------------
-with tab3:
-    st.header("Step 3: Quantile Normalization")
-    st.info("This feature will normalize your data against a large reference matrix. The normalized data can then be used for prediction.")
-    
-    if "user_matrix" not in st.session_state:
-        st.warning("Please upload a matrix in the 'Upload & Check' tab first.")
-    else:
-        user_matrix = st.session_state["user_matrix"]
-        
-        st.write("### Normalization Status")
-        st.markdown("- **User Matrix Loaded:** ✅ Yes")
-        
-        if NORMALIZATION_REFERENCE_FILE_ID == "YOUR_NORMALIZATION_REFERENCE_FILE_ID":
-            st.error("❌ Normalization reference matrix ID is missing. Please provide the Google Drive ID in the code.")
-        else:
-            st.markdown("- **Normalization Reference Matrix:** The app will download this automatically.")
-        
-            if st.button("📈 Run Normalization"):
-                with st.spinner("Downloading reference matrix and running normalization... This may take a few minutes."):
-                    reference_df = load_normalization_reference_matrix()
-                    if reference_df is not None:
-                        normalized_df = quantile_normalize_pipeline(user_matrix, reference_df)
-                        
-                        if normalized_df is not None:
-                            st.session_state["normalized_df"] = normalized_df
-                            st.success("✅ Normalization complete! The normalized data is ready.")
-                            st.write("### Normalized Data Preview:")
-                            st.dataframe(normalized_df.head())
-                            
-                            csv_normalized = normalized_df.to_csv().encode('utf-8')
-                            st.download_button(
-                                label="💾 Download Normalized Matrix CSV",
-                                data=csv_normalized,
-                                file_name="normalized_matrix.csv",
-                                mime="text/csv",
-                                key="download_normalized_csv"
-                            )
-                    else:
-                        st.error("Normalization failed. Could not load reference matrix.")
-
-# --------------------
-# Tab 4: Download
+# Tab 4: Download (Old Tab 3)
 # --------------------
 with tab4:
     st.header("Step 4: Download Results")
@@ -539,7 +554,7 @@ with tab4:
         st.warning("No prediction results to download yet. Please run the prediction in the previous step.")
 
 # --------------------
-# Tab 5: Query System
+# Tab 5: Query System (Old Tab 4)
 # --------------------
 with tab5:
     st.header("Step 5: Query Results")
@@ -625,7 +640,7 @@ with tab5:
         st.warning("Please run the prediction first to generate the data for querying.")
 
 # --------------------
-# Tab 6: Tutorial
+# Tab 6: Tutorial (Old Tab 5)
 # --------------------
 with tab6:
     st.header("📚 Tutorial: How to Use the MPGEM App")
@@ -637,34 +652,29 @@ with tab6:
 
     st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
     
-    st.subheader("Step 1: Upload & Check")
+    st.subheader("Step 1: Quantile Normalization")
     st.markdown(
         """
-        1.  **File Format:** Ensure your gene expression data is in a CSV (`.csv`) file with the first column as Sample IDs and subsequent columns as gene names. Values should be normalized gene expression data.
-        2.  **Sample Data:** If you are unsure about the format, use the **Download Sample CSV** button to get a correctly formatted file.
-        3.  **Gene List Validation:** The model requires a specific set of 12,712 genes. The app will validate your data against this list. You can view the full list by clicking the expander below.
-        4.  **Upload your file:** Click **"Upload Your CSV File Here"** to upload your gene expression matrix. The app will check for compatibility.
-            * **Success:** If your file is compatible, a success message will appear.
-            * **Missing Genes:** If genes are missing, an error will be displayed along with a list of the missing genes.
-            * **Wrong Format:** An error will be shown if the file is not a valid CSV.
+        1.  **Upload:** Use the uploader in the `Normalization` tab to provide your gene expression matrix.
+        2.  **Run Normalization:** Click the 'Run Normalization' button. The app will download the large reference matrix, compute the RSQD, and normalize your data.
+        3.  **Result:** A preview of the normalized matrix will appear, and you will have the option to download it.
         """
     )
     
     st.subheader("Step 2: Prediction")
     st.markdown(
         """
-        1.  After a successful compatibility check in Step 1, navigate to this tab.
-        2.  Click the **"🚀 Run Model Prediction"** button.
-        3.  The app will download the pre-trained neural network model and predict the expression values for the complete set of genes.
-        4.  This process may take a few minutes. Once complete, a preview of the combined matrix will be shown once the prediction is complete.
+        1.  **Upload & Check:** In this tab, you can use the matrix normalized in Step 1 or upload a new one. The app will perform gene compatibility checks.
+        2.  **Run Prediction:** Click the **"🚀 Run Model Prediction"** button. The app will download the deep learning model and predict expression values for the complete set of genes.
+        3.  **Preview:** A preview of the combined matrix will be shown once the prediction is complete.
         """
     )
-    
+
     st.subheader("Step 3: Download")
     st.markdown(
         """
-        1.  Once the prediction is complete, the full gene expression matrix is ready.
-        2.  Click the **"💾 Download Full Predictions CSV"** button to download the complete file, including all predicted gene expression values, to your local computer.
+        1.  When the prediction is complete, the full matrix is ready for download.
+        2.  Click the **"💾 Download Full Predictions CSV"** button to save the file to your computer.
         """
     )
 
@@ -673,8 +683,8 @@ with tab6:
         """
         1.  This tab allows you to filter the prediction results interactively.
         2.  **Select a Query Type:** Choose from `Gene-based`, `Sample-based`, `Gene + Sample`, or `Threshold filter`.
-        3.  **Enter your query:** Use the text boxes to enter comma-separated gene names or sample IDs. The search is case-insensitive.
-        4.  **Run the query:** Click **"Run Query"**. The filtered results will be displayed in a table below, and you will have the option to download the query result as a new CSV file.
+        3.  **Enter your query:** Use the text boxes to enter comma-separated gene names or sample IDs.
+        4.  **Run the query:** Click **"Run Query"**. The filtered results will be displayed in a table below, and you will have the option to download the query result.
         """
     )
 
