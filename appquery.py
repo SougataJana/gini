@@ -521,8 +521,6 @@ with tab5:
     
 
     st.video('https://drive.google.com/file/d/1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL/view?usp=sharing') 
-
-
     st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
 
     st.subheader("Step 1: Upload & Check")
