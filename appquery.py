@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -62,14 +61,16 @@ def load_mpgem_samples():
         st.error(f"Error downloading MPGEM samples list: {e}")
         return None
 
+# --- UPDATED: Load normalization reference matrix as .h5 file ---
 @st.cache_data
 def load_normalization_reference_matrix():
     try:
-        temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
+        temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".h5").name
         gdown.download(f"https://drive.google.com/uc?id={NORMALIZATION_REFERENCE_FILE_ID}", temp_path, quiet=True)
-        return pd.read_csv(temp_path, index_col=0)
+        # Use pd.read_hdf to read the HDF5 file with the key "data"
+        return pd.read_hdf(temp_path, key="data")
     except Exception as e:
-        st.error(f"Error downloading normalization reference matrix: {e}")
+        st.error(f"Error downloading or reading normalization reference matrix from HDF5 file: {e}")
         return None
 
 @st.cache_resource
@@ -669,7 +670,7 @@ with tab6:
         3.  **Preview:** A preview of the combined matrix will be shown once the prediction is complete.
         """
     )
-
+    
     st.subheader("Step 3: Download")
     st.markdown(
         """
