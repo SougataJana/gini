@@ -25,6 +25,8 @@ MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
 
 # --- MPGEM Sample List File ID ---
 MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
+#tutorial video FILE ID----
+VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
 
 # --------------------
 # Custom activation
@@ -74,6 +76,16 @@ def load_model_from_drive():
         return load_model(temp_path)
     except Exception as e:
         st.error(f"Error downloading the model: {e}")
+        return None
+
+@st.cache_resource
+def get_video_path():
+    try:
+        temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+        gdown.download(f"https://drive.google.com/uc?id={VIDEO_FILE_ID}", temp_path, quiet=True)
+        return temp_path
+    except Exception as e:
+        st.error(f"Error downloading the tutorial video: {e}")
         return None
 
 # --------------------
