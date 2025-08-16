@@ -515,6 +515,13 @@ with tab4:
 # --------------------
 with tab5:
     st.header("📚 Tutorial: How to Use the MPGEM App")
+    
+
+    st.markdown("Watch this video for a quick walkthrough of the app's features.")
+    
+
+    st.video('https://drive.google.com/file/d/1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL/view?usp=sharing') 
+
 
     st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
 
