@@ -4,6 +4,19 @@ import numpy as np
 import tempfile
 import gdown
 import os
+import dask.dataframe as dd
+import dask.array as da
+
+# --------------------
+# Configuration & File IDs
+# --------------------
+REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
+MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
+MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
+VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
+
+# --- NEW: Normalization Reference Matrix ID ---
+NORMALIZATION_REFERENCE_FILE_ID = "1YyfzzbwCPZPhO6tg1Kt3-snf1iTICgOw"
 
 # --------------------
 # Flexible import for get_custom_objects
@@ -18,17 +31,6 @@ from keras.layers import Activation
 from tensorflow.keras.models import load_model
 
 # --------------------
-# Google Drive File IDs
-# --------------------
-REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
-MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
-
-# --- MPGEM Sample List File ID ---
-MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
-#tutorial video FILE ID----
-VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
-
-# --------------------
 # Custom activation
 # --------------------
 def custom_activation(x):
@@ -37,7 +39,7 @@ def custom_activation(x):
 get_custom_objects().update({'custom_activation': Activation(custom_activation)})
 
 # --------------------
-# Download reference genes
+# Download reference files (cached for efficiency)
 # --------------------
 @st.cache_data
 def load_reference_genes():
@@ -50,24 +52,27 @@ def load_reference_genes():
         st.error(f"Error downloading reference genes: {e}")
         return None, None
 
-# --------------------
-# Download MPGEM samples list
-# --------------------
 @st.cache_data
 def load_mpgem_samples():
     try:
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
         gdown.download(f"https://drive.google.com/uc?id={MPGEM_SAMPLES_FILE_ID}", temp_path, quiet=True)
-
         mpgem_samples = pd.read_csv(temp_path, header=None)[0].tolist()
         return mpgem_samples
     except Exception as e:
         st.error(f"Error downloading MPGEM samples list: {e}")
         return None
 
-# --------------------
-# Download model
-# --------------------
+@st.cache_data
+def load_normalization_reference_matrix():
+    try:
+        temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
+        gdown.download(f"https://drive.google.com/uc?id={NORMALIZATION_REFERENCE_FILE_ID}", temp_path, quiet=True)
+        return pd.read_csv(temp_path, index_col=0)
+    except Exception as e:
+        st.error(f"Error downloading normalization reference matrix: {e}")
+        return None
+
 @st.cache_resource
 def load_model_from_drive():
     try:
@@ -82,14 +87,14 @@ def load_model_from_drive():
 def get_video_path():
     try:
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
-        gdown.download(f"https://drive.google.com/uc?id={VIDEO_FILE_ID}", temp_path, quiet=True)
+        gdown.download(f"https://drive.google.com/uc?export=download&id={VIDEO_FILE_ID}", temp_path, quiet=True)
         return temp_path
     except Exception as e:
         st.error(f"Error downloading the tutorial video: {e}")
         return None
 
 # --------------------
-# Create submatrix
+# Core Logic Functions
 # --------------------
 def create_submatrix(user_matrix, reference_genes_pred):
     user_genes = set(user_matrix.columns)
@@ -103,28 +108,79 @@ def create_submatrix(user_matrix, reference_genes_pred):
         missing = reference_genes - user_genes
         return None, "missing", sorted(list(missing))
 
-# --------------------
-# Prediction and merge
-# --------------------
 def predict_and_merge(submatrix, reference_genes, model):
     input_matrix = submatrix.to_numpy()
     predicted = model.predict(input_matrix, batch_size=1, verbose=0)
-
+    
     predicted_genes = reference_genes[len(submatrix.columns):]
     predicted_df = pd.DataFrame(predicted, columns=predicted_genes, index=submatrix.index)
-
+    
     return pd.concat([submatrix, predicted_df], axis=1)
+
+# --------------------
+# Quantile Normalization Pipeline (Dask compatible)
+# --------------------
+def find_common_genes(user_df, reference_df):
+    user_genes = set(user_df.columns)
+    ref_genes = set(reference_df.columns)
+    common_genes = list(user_genes.intersection(ref_genes))
+    if len(common_genes) == 0:
+        st.error("No common genes found between user and reference matrices.")
+        return None
+    return sorted(common_genes)
+
+def compute_reference_distribution(ref_df):
+    try:
+        sorted_values = np.sort(ref_df.values, axis=0)
+        rsqd = np.mean(sorted_values, axis=1)
+        return rsqd
+    except Exception as e:
+        st.error(f"Error computing RSQD: {e}")
+        return None
+
+def normalize_with_rsqd(user_df, rsqd):
+    try:
+        user_array = user_df.to_numpy()
+        sorted_idx = np.argsort(user_array, axis=0)
+        ranks = np.argsort(sorted_idx, axis=0)
+        norm_array = np.zeros_like(user_array, dtype=float)
+
+        for col in range(user_array.shape[1]):
+            norm_array[:, col] = rsqd[ranks[:, col]]
+
+        normalized_df = pd.DataFrame(norm_array, index=user_df.index, columns=user_df.columns)
+        return normalized_df
+    except Exception as e:
+        st.error(f"Error during normalization: {e}")
+        return None
+
+def quantile_normalize_pipeline(user_df, reference_df):
+    st.info("Finding common genes...")
+    common_genes = find_common_genes(user_df, reference_df)
+    if common_genes is None: return None
+
+    st.info("Filtering matrices to common genes...")
+    user_df_common = user_df[common_genes]
+    reference_df_common = reference_df[common_genes]
+    
+    st.info("Computing Reference Subset Quantile Distribution (RSQD)...")
+    rsqd = compute_reference_distribution(reference_df_common)
+    if rsqd is None: return None
+
+    st.info("Applying quantile normalization to user matrix...")
+    normalized_df = normalize_with_rsqd(user_df_common, rsqd)
+
+    return normalized_df
 
 # --------------------
 # UI Styling & Configuration
 # --------------------
 st.set_page_config(
-    page_title="Gene Expression Predictor",
+    page_title="Gene Expression Predictor", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for a cleaner, modern look
 st.markdown(
     """
     <style>
@@ -132,8 +188,8 @@ st.markdown(
         background-color: #f0f2f6;
     }
     h1 {
-        color: #1a73e8;
-        font-weight: 700;
+        color: #1a73e8; 
+        font-weight: 700; 
         text-align: center;
         margin-bottom: 0.5em;
     }
@@ -197,19 +253,20 @@ st.markdown(
         color: #5f6368;
         text-align: center;
     }
+    
     /* --- DARK MODE STYLES --- */
-@media (prefers-color-scheme: dark) {
-    .main {
-        background-color: #0e1117;
+    @media (prefers-color-scheme: dark) {
+        .main {
+            background-color: #0e1117;
+        }
+        .header-section {
+            background-color: #1c2b38;
+            box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+        }
+        .header-section p {
+            color: #d3d3d3; /* A light gray for dark mode */
+        }
     }
-    .header-section {
-        background-color: #1c2b38;
-        box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
-    }
-    .header-section p {
-        color: #d3d3d3; /* A light gray for dark mode */
-    }
-}
     </style>
     """,
     unsafe_allow_html=True
@@ -235,13 +292,14 @@ st.markdown(
 st.divider()
 
 # --------------------
-# Tabs for navigation
+# Tabs for navigation - NEW TAB ADDED HERE
 # --------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📁 Upload & Check",
-    "🧠 Prediction",
-    "💾 Download",
-    "🔎 Query Results",
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "📁 Upload & Check", 
+    "🧠 Prediction", 
+    "📊 Normalization",  # NEW TAB
+    "💾 Download", 
+    "🔎 Query Results", 
     "📚 Tutorial"
 ])
 
@@ -260,22 +318,23 @@ with tab1:
         with st.expander(f"View the {len(ref_genes_pred)} required reference genes"):
             st.markdown("The app will automatically re-order the genes to match the model's input format, so the original order of your genes will not be maintained in the submatrix.")
             st.dataframe(pd.DataFrame(ref_genes_pred, columns=['Required Gene Names']))
-
+    
     st.divider()
 
     st.subheader("Upload Your Data")
     col1, col2 = st.columns([1.5, 1])
-
+    
     with col1:
         user_file = st.file_uploader("Upload Your CSV File Here", type=["csv"])
+        st.markdown("---")
+        # New chunking option
+        use_chunks = st.checkbox("Use memory-efficient loading for large files?", value=False)
+
 
     with col2:
-        # --- Sample Data Download Section - Your code block is here ---
-        st.markdown("### Don't have a file? Download a sample dataset.")
-        st.markdown("Use this file to understand the required input format and test the application.")
-
+        st.markdown("### Or use sample data")
+        st.markdown("Download a correctly formatted file to test the app.")
         try:
-            # The file name is updated here to your specified file
             with open("sample_csv_for_testing.csv", "rb") as f:
                 sample_csv_data = f.read()
 
@@ -288,10 +347,7 @@ with tab1:
             )
         except FileNotFoundError:
             st.warning("Sample file not found. Please ensure 'sample_csv_for_testing.csv' is in the same directory.")
-
-        st.markdown("---")
-        # -------------------------------------------------------------
-
+    
     if user_file:
         file_extension = os.path.splitext(user_file.name)[1]
         if file_extension.lower() != '.csv':
@@ -300,16 +356,21 @@ with tab1:
 
         with st.spinner("Processing file and fetching reference genes..."):
             try:
-                user_matrix = pd.read_csv(user_file, index_col=0)
+                # Modified to handle chunking
+                if use_chunks:
+                    st.info("Reading file in chunks for memory-efficient processing.")
+                    chunks = pd.read_csv(user_file, chunksize=1000, index_col=0)
+                    user_matrix = pd.concat(chunks)
+                else:
+                    user_matrix = pd.read_csv(user_file, index_col=0)
 
                 if ref_genes is None or ref_genes_pred is None:
                     st.error("Could not load reference genes. Please try again later.")
                     st.stop()
-
+                
                 st.write("### Uploaded Data Preview:")
                 st.dataframe(user_matrix.head())
 
-                # --- Data Statistics and Sample Overlap Check ---
                 st.write("### Data Statistics and Sample Overlap")
                 n_samples, n_genes = user_matrix.shape
                 st.markdown(f"- **Number of Samples in your Matrix:** {n_samples}")
@@ -319,14 +380,13 @@ with tab1:
                 if mpgem_samples:
                     user_samples_set = set(user_matrix.index)
                     mpgem_samples_set = set(mpgem_samples)
-
+                    
                     overlapping_samples = user_samples_set.intersection(mpgem_samples_set)
                     non_overlapping_samples = user_samples_set - mpgem_samples_set
-
+                    
                     st.markdown(f"- **Samples already in MPGEM reference list:** {len(overlapping_samples)}")
                     st.markdown(f"- **New Samples in your Matrix:** {len(non_overlapping_samples)}")
-
-                    # Overlapping Samples Download
+                    
                     if overlapping_samples:
                         with st.expander("View and Download Overlapping Sample IDs"):
                             overlapping_df = pd.DataFrame(list(overlapping_samples), columns=["Overlapping Sample IDs"])
@@ -339,8 +399,7 @@ with tab1:
                                 mime="text/csv",
                                 key="download_overlapping"
                             )
-
-                    # Non-overlapping Samples Download
+                    
                     if non_overlapping_samples:
                         with st.expander("View and Download New Sample IDs"):
                             non_overlapping_df = pd.DataFrame(list(non_overlapping_samples), columns=["New Sample IDs"])
@@ -354,7 +413,6 @@ with tab1:
                                 key="download_new_samples"
                             )
 
-                # Download MPGEM Sample List
                 st.markdown("---")
                 st.subheader("MPGEM Reference Data")
                 st.info("You can download the full list of MPGEM samples for your reference.")
@@ -367,10 +425,9 @@ with tab1:
                     mime="text/csv",
                     key="download_mpgem_samples"
                 )
-
+                
                 st.divider()
-
-                # Gene compatibility check continues as before
+                
                 submatrix, status, missing_genes = create_submatrix(user_matrix, ref_genes_pred)
 
                 st.write("### Compatibility Check:")
@@ -378,10 +435,12 @@ with tab1:
                     st.success("✅ Success! Your gene set matches the required reference genes exactly. Ready for prediction.")
                     st.session_state["submatrix"] = submatrix
                     st.session_state["reference_genes"] = ref_genes
+                    st.session_state["user_matrix"] = user_matrix
                 elif status == "extra":
                     st.info("ℹ️ Your matrix contains more genes than required. The app will automatically subset the data to match the reference gene list. Ready for prediction.")
                     st.session_state["submatrix"] = submatrix
                     st.session_state["reference_genes"] = ref_genes
+                    st.session_state["user_matrix"] = user_matrix
                 elif status == "missing":
                     st.error(f"❌ Your matrix is missing {len(missing_genes)} required genes. Prediction cannot proceed. Please upload a file with all necessary genes.")
                     st.write("**Missing Genes:**")
@@ -403,25 +462,68 @@ with tab2:
         if st.button("🚀 Run Model Prediction"):
             with st.spinner("Downloading model from Google Drive and predicting... This may take a few minutes."):
                 model = load_model_from_drive()
-
+                
                 if model is None:
                     st.error("Model could not be loaded. Please try again.")
                     st.stop()
-
+                    
                 merged_df = predict_and_merge(st.session_state["submatrix"], st.session_state["reference_genes"], model)
                 st.session_state["merged_df"] = merged_df
                 st.success("✅ Prediction complete! You can now view, download, or query the full dataset.")
-
+                
                 st.write("### Prediction Results Preview:")
                 st.dataframe(merged_df.head())
     else:
         st.warning("Please upload a valid gene expression matrix in the 'Upload & Check' tab first.")
 
 # --------------------
-# Tab 3: Download
+# Tab 3: Normalization
 # --------------------
 with tab3:
-    st.header("Step 3: Download Results")
+    st.header("Step 3: Quantile Normalization")
+    st.info("This feature will normalize your data against a large reference matrix. The normalized data can then be used for prediction.")
+    
+    if "user_matrix" not in st.session_state:
+        st.warning("Please upload a matrix in the 'Upload & Check' tab first.")
+    else:
+        user_matrix = st.session_state["user_matrix"]
+        
+        st.write("### Normalization Status")
+        st.markdown("- **User Matrix Loaded:** ✅ Yes")
+        
+        if NORMALIZATION_REFERENCE_FILE_ID == "YOUR_NORMALIZATION_REFERENCE_FILE_ID":
+            st.error("❌ Normalization reference matrix ID is missing. Please provide the Google Drive ID in the code.")
+        else:
+            st.markdown("- **Normalization Reference Matrix:** The app will download this automatically.")
+        
+            if st.button("📈 Run Normalization"):
+                with st.spinner("Downloading reference matrix and running normalization... This may take a few minutes."):
+                    reference_df = load_normalization_reference_matrix()
+                    if reference_df is not None:
+                        normalized_df = quantile_normalize_pipeline(user_matrix, reference_df)
+                        
+                        if normalized_df is not None:
+                            st.session_state["normalized_df"] = normalized_df
+                            st.success("✅ Normalization complete! The normalized data is ready.")
+                            st.write("### Normalized Data Preview:")
+                            st.dataframe(normalized_df.head())
+                            
+                            csv_normalized = normalized_df.to_csv().encode('utf-8')
+                            st.download_button(
+                                label="💾 Download Normalized Matrix CSV",
+                                data=csv_normalized,
+                                file_name="normalized_matrix.csv",
+                                mime="text/csv",
+                                key="download_normalized_csv"
+                            )
+                    else:
+                        st.error("Normalization failed. Could not load reference matrix.")
+
+# --------------------
+# Tab 4: Download
+# --------------------
+with tab4:
+    st.header("Step 4: Download Results")
     if "merged_df" in st.session_state:
         st.info("The final matrix, including your original data and the predicted gene expression values, is ready for download.")
         csv = st.session_state["merged_df"].to_csv().encode('utf-8')
@@ -437,10 +539,10 @@ with tab3:
         st.warning("No prediction results to download yet. Please run the prediction in the previous step.")
 
 # --------------------
-# Tab 4: Query System
+# Tab 5: Query System
 # --------------------
-with tab4:
-    st.header("Step 4: Query Results")
+with tab5:
+    st.header("Step 5: Query Results")
     if "merged_df" in st.session_state:
         df = st.session_state["merged_df"]
         st.info("Interactively filter and query the final gene expression matrix.")
@@ -449,7 +551,7 @@ with tab4:
             "Select Query Type",
             ["Gene-based", "Sample-based", "Gene + Sample", "Threshold filter"]
         )
-
+        
         gene_input = None
         sample_input = None
         threshold_value = None
@@ -486,7 +588,7 @@ with tab4:
                     st.error("No matching samples found.")
                     st.stop()
                 filtered_df = filtered_df.loc[matching_samples]
-
+            
             if query_type == "Threshold filter" and threshold_value is not None:
                 if comparison_type == ">":
                     filtered_rows = (df[filtered_df.columns] > threshold_value).any(axis=1)
@@ -498,9 +600,9 @@ with tab4:
                     filtered_rows = (df[filtered_df.columns] <= threshold_value).any(axis=1)
                 elif comparison_type == "==":
                     filtered_rows = (df[filtered_df.columns] == threshold_value).any(axis=1)
-
+                
                 filtered_df = df[filtered_rows]
-
+                
                 if gene_input:
                     matching_genes = [col for col in original_columns if any(q in col.lower() for q in gene_list)]
                     filtered_df = filtered_df[matching_genes]
@@ -523,21 +625,18 @@ with tab4:
         st.warning("Please run the prediction first to generate the data for querying.")
 
 # --------------------
-# Tutorial Tab
+# Tab 6: Tutorial
 # --------------------
-with tab5:
+with tab6:
     st.header("📚 Tutorial: How to Use the MPGEM App")
+    st.markdown("Watch this video for a quick walkthrough of the app's features.")
     
-
     video_path = get_video_path()
     if video_path:
         st.video(video_path)
 
-    
-
-
     st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
-
+    
     st.subheader("Step 1: Upload & Check")
     st.markdown(
         """
@@ -550,7 +649,7 @@ with tab5:
             * **Wrong Format:** An error will be shown if the file is not a valid CSV.
         """
     )
-
+    
     st.subheader("Step 2: Prediction")
     st.markdown(
         """
@@ -560,7 +659,7 @@ with tab5:
         4.  This process may take a few minutes. Once complete, a preview of the combined matrix will be shown once the prediction is complete.
         """
     )
-
+    
     st.subheader("Step 3: Download")
     st.markdown(
         """
