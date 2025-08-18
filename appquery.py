@@ -585,4 +585,5 @@ st.markdown(
     "<p style='color: gray; margin: 0;'>Built by SciWhyLab.org</p>"
     "<img src='sciwhy.jpeg' alt='SciWhyLab Logo' style='height: 40px; margin-left: 10px;'>"
     "</div>",
-    unsafe_allow_html=True)
+    unsafe_allow_html=True
+)
