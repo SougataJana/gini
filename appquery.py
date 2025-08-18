@@ -526,7 +526,7 @@ with tab4:
 # Tutorial Tab
 # --------------------
 with tab5:
-    st.header("📚 Tutorial: How to Use the MPGEM App")
+    st.header("📚 Tutorial: How to Use the MPGEM WebApp")
     
 
     video_path = get_video_path()
