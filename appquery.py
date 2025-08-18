@@ -580,4 +580,9 @@ with tab5:
     )
 
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: gray;'>Powered by SciWhy</p>", unsafe_allow_html=True)
+st.markdown(
+    "<div style='display: flex; justify-content: center; align-items: center;'>"
+    "<p style='color: gray; margin: 0;'>Built by SciWhyLab.org</p>"
+    "<img src='sciwhy.jpeg' alt='SciWhyLab Logo' style='height: 40px; margin-left: 10px;'>"
+    "</div>",
+    unsafe_allow_html=True)
