@@ -580,4 +580,4 @@ with tab5:
     )
 
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: gray;'>Built with Streamlit & Keras</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: gray;'>Powered by SciWhy</p>", unsafe_allow_html=True)
