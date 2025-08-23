@@ -39,7 +39,7 @@ VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
 
 # --- Image file for background ---
 ## IMPORTANT: Make sure you have a 'background.jpg' file in your GitHub repository!
-BACKGROUND_IMAGE_FILE = "my_background.jpg"
+BACKGROUND_IMAGE_FILE = "background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
@@ -73,33 +73,37 @@ def load_css_and_background():
     st.markdown(
         f"""
         <style>
-        /* --- CORE APP STYLING --- */
+        /* --- NEW: Keyframes for the fade-in-up animation --- */
+        @keyframes fadeInUp {{
+            from {{
+                opacity: 0;
+                transform: translateY(30px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateY(0);
+            }}
+        }}
+
+        /* --- CORE APP STYLING (with corrected overlay) --- */
         .stApp {{
-            background-color: #0e1117; /* Fallback color */
-            {f'background-image: url("data:image/jpeg;base64,{img}");' if img else ""}
+            {f'''
+            background-image:
+                linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+                url("data:image/jpeg;base64,{img}");
+            ''' if img else "background-color: #0e1117;"}
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-attachment: fixed; /* This is key for scrolling */
         }}
 
-        /* --- DARK OVERLAY FOR TEXT READABILITY --- */
-        .stApp::before {{
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7); /* Darker overlay */
-            z-index: 1;
+        /* --- Ensure main content area is transparent to see the background --- */
+        .main .block-container {{
+            background-color: transparent !important;
         }}
 
-        /* --- POSITION CONTENT ABOVE OVERLAY --- */
-        .main, .stSidebar {{
-            position: relative;
-            z-index: 2;
-            background: transparent !important;
-        }}
-
-        /* --- FROSTED GLASS EFFECT FOR CONTAINERS --- */
+        /* --- FROSTED GLASS EFFECT FOR CONTAINERS (with scroll animation) --- */
         .header-section, .stTabs, .stExpander {{
             background: rgba(28, 43, 56, 0.65);
             backdrop-filter: blur(12px);
@@ -109,6 +113,9 @@ def load_css_and_background():
             padding: 2rem;
             margin-bottom: 2rem;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            
+            /* --- NEW: Applying the animation here --- */
+            animation: fadeInUp 0.8s ease-in-out;
         }}
 
         /* --- TYPOGRAPHY --- */
