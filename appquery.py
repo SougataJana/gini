@@ -90,37 +90,49 @@ def load_css_and_background():
         h1, h2, h3, p, .stMarkdown, label {{ color: #ffffff; }}
         
         /* --- COMBINED HEADER STYLES --- */
-        .app-header {{
-            position: relative;
+        
+         /* --- COMBINED HEADER STYLES (Corrected) --- */
+        .app-header {
             text-align: center;
-            margin-bottom: 3rem; /* Space for the underline */
-        }}
-        .app-header::after {{ /* Animated Underline */
-            content: '';
-            display: block;
-            width: 0px; /* Starts at 0, animates to 300px */
-            height: 3px;
-            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 5px;
-            border-radius: 2px;
-            animation: draw-line 1.2s ease-out 0.5s forwards;
-        }}
-        .header-container {{
+            margin-bottom: 3rem; 
+        }
+        .header-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-bottom: 1rem;
-        }}
-        .header-svg {{
-            stroke: #48c6ef; /* Use the lighter color from our gradient for the icon */
-        }}
-        .main-title {{
+            position: relative; /* Context for the underline */
+            padding-bottom: 20px; /* Space for the underline */
+            margin-bottom: 1rem; /* Space between underline and subtitle */
+        }
+        .header-container::after { /* Animated Underline */
+            content: '';
+            display: block;
+            width: 0px; 
+            height: 3px;
+            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
+            position: absolute;
+            bottom: 0; /* Positioned at the bottom of the icon+title container */
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+            animation: draw-line 1.2s ease-out 0.5s forwards;
+        }
+        .header-svg {
+            stroke: #48c6ef;
+        }
+        .main-title {
             font-size: 4rem;
             font-weight: 800;
-            
+            background: linear-gradient(120deg, #48c6ef, #ffffff, #6f86d6, #48c6ef);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 5s linear infinite;
+        }
+        .main-subtitle { 
+            font-size: 1.5rem; 
+            color: #a0b0c0; 
+        }
             /* Animated Gradient Text */
             background: linear-gradient(120deg, #48c6ef, #ffffff, #6f86d6, #48c6ef);
             background-size: 200% auto;
