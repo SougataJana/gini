@@ -1,5 +1,5 @@
 # ==============================================================================
-# MPGEM: Molecular Prediction of Gene Expression Matrix (v10 - Final Design)
+# MPGEM: Molecular Prediction of Gene Expression Matrix (v12 - Text Header)
 # A Streamlit web application for gene expression prediction using a deep
 # learning model.
 #
@@ -62,9 +62,9 @@ def load_css_and_background():
         /* --- Animation Keyframes --- */
         @keyframes fadeInUp {{ from {{ opacity: 0; transform: translateY(30px); }} to {{ opacity: 1; transform: translateY(0); }} }}
         @keyframes pulse {{
-            0% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }}
-            70% {{ transform: scale(1.05); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }}
-            100% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }}
+            0% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }}
+            70% {{ transform: scale(1.05); box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); }}
+            100% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }}
         }}
         @keyframes shimmer {{
             0% {{ background-position: -200% center; }}
@@ -95,24 +95,25 @@ def load_css_and_background():
         [data-testid="stAlert"] {{ padding: 1rem 1.5rem !important; }}
         h1, h2, h3, p, .stMarkdown, label {{ color: #ffffff; }}
         
-        /* --- Combined Header Styles --- */
+        /* --- Simplified Header Styles --- */
         .app-header {{ text-align: center; margin-bottom: 3rem; }}
-        .header-container {{
-            display: flex; align-items: center; justify-content: center;
-            position: relative; padding-bottom: 20px; margin-bottom: 1rem;
+        .main-title {{
+            font-size: 4.5rem; /* Made slightly larger to fill space */
+            font-weight: 800;
+            position: relative;
+            padding-bottom: 20px;
+            margin-bottom: 1rem;
+            
+            /* Animated Gradient Text */
+            background: linear-gradient(120deg, #f8f9fa, #ffffff, #dc3545, #f8f9fa);
+            background-size: 200% auto; -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; animation: shimmer 4s linear infinite;
         }}
-        .header-container::after {{
+        .main-title::after {{ /* Animated Underline */
             content: ''; display: block; width: 0px; height: 3px;
-            background: linear-gradient(135deg, #10b981 0%, #6ee7b7 100%);
+            background: linear-gradient(135deg, #dc3545 0%, #f8f9fa 100%);
             position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
             border-radius: 2px; animation: draw-line 1.2s ease-out 0.5s forwards;
-        }}
-        .header-svg {{ stroke: #6ee7b7; }}
-        .main-title {{
-            font-size: 4rem; font-weight: 800;
-            background: linear-gradient(120deg, #6ee7b7, #ffffff, #10b981, #6ee7b7);
-            background-size: 200% auto; -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; animation: shimmer 5s linear infinite;
         }}
         .main-subtitle {{ font-size: 1.5rem; color: #a0b0c0; }}
         
@@ -127,10 +128,12 @@ def load_css_and_background():
         
         .stTabs [data-baseweb="tab-list"] {{ gap: 12px; }}
         .stTabs [data-baseweb="tab"] {{ background-color: transparent; border-radius: 8px; padding: 10px 16px; color: #a0b0c0; transition: all 0.2s ease; }}
-        .stTabs [aria-selected="true"] {{ background: rgba(16, 185, 129, 0.3); color: #ffffff; font-weight: bold; }}
+        .stTabs [aria-selected="true"] {{ background: rgba(220, 53, 69, 0.3); color: #ffffff; font-weight: bold; }}
         
-        /* --- ADVANCED Floating Action Button Styles --- */
+        /* --- ADVANCED Floating Action Button Styles (Red & White Theme) --- */
         .floating-button .stButton>button {{
+            background: linear-gradient(135deg, #dc3545 0%, #f8f9fa 100%);
+            color: #343a40; text-shadow: 0 0 2px #ffffff;
             background-size: 300% 300%;
             animation: pulse 2.5s infinite, gradient-shift 8s ease infinite;
             width: 65px; height: 65px; border-radius: 50%; font-size: 30px; padding: 0;
@@ -265,15 +268,10 @@ def contact_popup():
 st.set_page_config(page_title="MPGEM Predictor", layout="wide", initial_sidebar_state="collapsed")
 load_css_and_background()
 
-# --- COMBINED HEADER ---
+# --- SIMPLIFIED HEADER ---
 st.markdown("""
     <div class="app-header">
-        <div class="header-container">
-            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="header-svg">
-                <path d="M16 4.38531C15.0471 3.52877 13.8295 3 12.5 3C10.1221 3 8.12213 4.67157 7.37398 6.81816M11 21C9.02324 21 7.21884 19.8634 6.22564 18.1818M11 21L12.5 16L14 21M11 21V16.5M16.7744 18.1818C17.7812 19.8634 19.0232 21 21.5 21C22.8295 21 23.0471 20.4712 24.0000 19.6147M16.7744 18.1818C17.5225 16.0347 19.5225 14.3631 21.8999 14.3631C23.0101 14.3631 24 13.5 24 12.1818C24 10.8636 23.0101 10 21.9 10C19.6716 10 17.6716 8.32843 16.9234 6.18184M16.7744 18.1818L12.5 16M7.37398 6.81816C6.62582 8.96525 4.62582 10.6369 2.25001 10.6369C1.13989 10.6369 0.150009 11.5 0.150009 12.8182C0.150009 14.1364 1.13989 15 2.25001 15C4.47844 15 6.47843 16.6716 7.2266 18.8182M7.37398 6.81816L12.5 8.5M16.9234 6.18184L12.5 8.5M7.2266 18.8182L12.5 16M16.9234 6.18184C16.1753 8.32843 14.1753 10 11.9 10C10.7899 10 9.80001 10.8636 9.80001 12.1818C9.80001 13.5 10.7899 14.3631 11.9 14.3631C14.3768 14.3631 16.1812 15.5 17.1744 17.1818" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <h1 class="main-title" style="padding-left: 15px;">MPGEM</h1>
-        </div>
+        <h1 class="main-title">MPGEM</h1>
         <p class="main-subtitle">Molecular Prediction of Gene Expression Matrix</p>
     </div>
     """, unsafe_allow_html=True)
