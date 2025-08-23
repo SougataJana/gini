@@ -39,7 +39,7 @@ VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
 
 # --- Image file for background ---
 ## IMPORTANT: Make sure you have a 'background.jpg' file in your GitHub repository!
-BACKGROUND_IMAGE_FILE = "background.jpg"
+BACKGROUND_IMAGE_FILE = "my_background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
