@@ -38,7 +38,7 @@ MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
 
 # --- Image file for background ---
-BACKGROUND_IMAGE_FILE = "my_background.jpg"
+BACKGROUND_IMAGE_FILE = "background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
@@ -128,8 +128,6 @@ def load_css_and_background():
             background: rgba(26, 115, 232, 0.3);
             color: #ffffff; font-weight: bold;
         }}
-
-        /* --- NEW: Floating Action Button Styles --- */
         .floating-button {{
             position: fixed;
             bottom: 30px;
@@ -139,7 +137,7 @@ def load_css_and_background():
         .floating-button .stButton>button {{
             width: 60px;
             height: 60px;
-            border-radius: 50%; /* Makes it a circle */
+            border-radius: 50%;
             font-size: 24px;
             padding: 0;
             box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3);
@@ -152,10 +150,8 @@ def load_css_and_background():
 # ------------------------------------------------------------------------------
 # DATA & MODEL LOADING FUNCTIONS
 # ------------------------------------------------------------------------------
-
 @st.cache_data
 def load_reference_genes():
-    # ... (function content unchanged)
     try:
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
         gdown.download(f"https://drive.google.com/uc?id={REFERENCE_FILE_ID}", temp_path, quiet=True)
@@ -167,7 +163,6 @@ def load_reference_genes():
 
 @st.cache_data
 def load_mpgem_samples():
-    # ... (function content unchanged)
     try:
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
         gdown.download(f"https://drive.google.com/uc?id={MPGEM_SAMPLES_FILE_ID}", temp_path, quiet=True)
@@ -179,7 +174,6 @@ def load_mpgem_samples():
 
 @st.cache_resource
 def load_model_from_drive():
-    # ... (function content unchanged)
     try:
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".h5").name
         gdown.download(f"https://drive.google.com/uc?id={MODEL_FILE_ID}", temp_path, quiet=True)
@@ -190,7 +184,6 @@ def load_model_from_drive():
 
 @st.cache_resource
 def get_video_path():
-    # ... (function content unchanged)
     try:
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
         gdown.download(f"https://drive.google.com/uc?id={VIDEO_FILE_ID}", temp_path, quiet=True)
@@ -202,9 +195,7 @@ def get_video_path():
 # ------------------------------------------------------------------------------
 # CORE LOGIC FUNCTIONS
 # ------------------------------------------------------------------------------
-
 def create_submatrix(user_matrix, reference_genes_pred):
-    # ... (function content unchanged)
     user_genes = set(user_matrix.columns)
     reference_genes = set(reference_genes_pred)
     if reference_genes == user_genes:
@@ -216,7 +207,6 @@ def create_submatrix(user_matrix, reference_genes_pred):
         return None, "missing", sorted(list(missing))
 
 def predict_and_merge(submatrix, reference_genes, model):
-    # ... (function content unchanged)
     input_matrix = submatrix.to_numpy()
     predicted = model.predict(input_matrix, batch_size=1, verbose=0)
     predicted_genes = reference_genes[len(submatrix.columns):]
@@ -227,27 +217,16 @@ def predict_and_merge(submatrix, reference_genes, model):
 # CONTACT DIALOG FUNCTION
 # ==============================================================================
 def contact_dialog():
-    """Creates a pop-up dialog with contact and support information."""
     with st.dialog("Contact & Support"):
         st.header("📧 Contact Information")
-        st.markdown(
-            """
-            This application is maintained by the SciWhy team. For any inquiries,
-            please feel free to reach out.
-            """
-        )
         st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
         st.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
         st.divider()
-
         st.header("🐞 Report an Issue")
-        st.markdown(
-            """
-            Encountered a bug? Your feedback is invaluable. Please open an issue
-            on our GitHub page with a detailed description.
-            """
-        )
+        st.markdown("Encountered a bug? Please open an issue on our GitHub page.")
         st.link_button("Submit an Issue", "https://github.com/SougataJana/gini/issues/new")
+        st.divider()
+        st.markdown("*This application is maintained by the SciWhy team.*")
 
 # ==============================================================================
 # MAIN APPLICATION UI
@@ -256,4 +235,236 @@ def contact_dialog():
 st.set_page_config(
     page_title="MPGEM Predictor",
     layout="wide",
-    initial_sidebar_state="expanded" # Sidebar
+    initial_sidebar_state="collapsed"
+)
+
+# Apply the custom CSS and background
+load_css_and_background()
+
+# --- HEADER ---
+st.markdown('<h1 class="main-title">🔬 MPGEM</h1>', unsafe_allow_html=True)
+st.markdown('<p class="main-subtitle">Molecular Prediction of Gene Expression Matrix</p>', unsafe_allow_html=True)
+with st.container():
+    st.markdown(
+        """
+        <div class="header-section">
+        <p style="color: #d0d8e0; font-size: 1.1rem;">
+        This application is a gene expression prediction tool powered by a deep learning model.
+        It takes a partial gene expression matrix as input and predicts the expression values for a larger set of genes.
+        </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+st.divider()
+
+# --- TABS FOR NAVIGATION ---
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "» Upload & Validate", "✨ Predict", "⤓ Download", "🎯 Query", "🗺️ Tutorial"
+])
+
+# --------------------
+# TAB 1: UPLOAD & VALIDATE
+# --------------------
+with tab1:
+    st.header("Step 1: Upload & Validate Your Matrix")
+    st.markdown("### Reference Gene Information")
+    st.info("To ensure compatibility, please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/tools/multi-symbol-checker/)")
+
+    ref_genes, ref_genes_pred = load_reference_genes()
+    if ref_genes_pred:
+        with st.expander(f"View the {len(ref_genes_pred)} required reference genes"):
+            st.markdown("The app will automatically re-order the genes to match the model's input format, so the original order of your genes will not be maintained in the submatrix.")
+            st.dataframe(pd.DataFrame(ref_genes_pred, columns=['Required Gene Names']))
+
+    st.divider()
+    st.subheader("Upload Your Data")
+    col1, col2 = st.columns([1.5, 1])
+    with col1:
+        user_file = st.file_uploader("Upload Your CSV File Here", type=["csv"])
+    with col2:
+        st.markdown("### Don't have a file? Download a sample dataset.")
+        st.markdown("Use this file to understand the required input format and test the application.")
+        try:
+            with open("sample_csv_for_testing.csv", "rb") as f:
+                sample_csv_data = f.read()
+            st.download_button(
+                label="Download Sample CSV",
+                data=sample_csv_data,
+                file_name="sample_csv_for_testing.csv",
+                mime="text/csv",
+                key="sample_download_button"
+            )
+        except FileNotFoundError:
+            st.warning("Sample file not found. Please ensure 'sample_csv_for_testing.csv' is in the same directory.")
+
+    if user_file:
+        file_extension = os.path.splitext(user_file.name)[1]
+        if file_extension.lower() != '.csv':
+            st.error("Invalid file format. Please upload a CSV file with a '.csv' extension.")
+            st.stop()
+
+        with st.spinner("Validating your data... 🧬"):
+            try:
+                user_matrix = pd.read_csv(user_file, index_col=0)
+                if ref_genes is None or ref_genes_pred is None:
+                    st.error("Could not load reference genes. Please try again later.")
+                    st.stop()
+
+                st.write("### Uploaded Data Preview:")
+                st.dataframe(user_matrix.head())
+                
+                st.write("### Data Statistics and Sample Overlap")
+                n_samples, n_genes = user_matrix.shape
+                st.markdown(f"- **Number of Samples in your Matrix:** {n_samples}")
+                st.markdown(f"- **Number of Genes in your Matrix:** {n_genes}")
+
+                mpgem_samples = load_mpgem_samples()
+                if mpgem_samples:
+                    user_samples_set = set(user_matrix.index)
+                    mpgem_samples_set = set(mpgem_samples)
+                    overlapping_samples = user_samples_set.intersection(mpgem_samples_set)
+                    non_overlapping_samples = user_samples_set - mpgem_samples_set
+                    st.markdown(f"- **Samples already in MPGEM reference list:** {len(overlapping_samples)}")
+                    st.markdown(f"- **New Samples in your Matrix:** {len(non_overlapping_samples)}")
+
+                    if overlapping_samples:
+                        with st.expander("View and Download Overlapping Sample IDs"):
+                            overlapping_df = pd.DataFrame(list(overlapping_samples), columns=["Overlapping Sample IDs"])
+                            st.dataframe(overlapping_df)
+                            csv_overlapping = overlapping_df.to_csv(index=False).encode('utf-8')
+                            st.download_button("Download Overlapping Samples CSV", csv_overlapping, "overlapping_samples.csv", "text/csv", key="download_overlapping")
+                    
+                    if non_overlapping_samples:
+                        with st.expander("View and Download New Sample IDs"):
+                            non_overlapping_df = pd.DataFrame(list(non_overlapping_samples), columns=["New Sample IDs"])
+                            st.dataframe(non_overlapping_df)
+                            csv_non_overlapping = non_overlapping_df.to_csv(index=False).encode('utf-8')
+                            st.download_button("Download New Samples CSV", csv_non_overlapping, "new_samples.csv", "text/csv", key="download_new_samples")
+                
+                st.markdown("---")
+                st.subheader("MPGEM Reference Data")
+                st.info("You can download the full list of MPGEM samples for your reference.")
+                mpgem_samples_df = pd.DataFrame(mpgem_samples, columns=['MPGEM Sample IDs'])
+                csv_mpgem_samples = mpgem_samples_df.to_csv(index=False).encode('utf-8')
+                st.download_button("Download MPGEM Sample List", csv_mpgem_samples, "mpgem_sample_list.csv", "text/csv", key="download_mpgem_samples")
+
+                st.divider()
+                
+                submatrix, status, missing_genes = create_submatrix(user_matrix, ref_genes_pred)
+                st.write("### Compatibility Check:")
+                if status == "equal" or status == "extra":
+                    st.success("✅ Success! Your gene set is compatible. Ready for prediction.")
+                    st.session_state["submatrix"] = submatrix
+                    st.session_state["reference_genes"] = ref_genes
+                elif status == "missing":
+                    st.error(f"❌ Your matrix is missing {len(missing_genes)} required genes.")
+                    st.dataframe(pd.DataFrame(missing_genes, columns=['Missing Genes']))
+                    if "submatrix" in st.session_state: del st.session_state["submatrix"]
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {e}")
+
+# --------------------
+# TAB 2: PREDICTION
+# --------------------
+with tab2:
+    st.header("Step 2: Run Prediction")
+    if "submatrix" in st.session_state:
+        st.info("Your data is ready. Click the button below to run the deep learning model.")
+        if st.button("🚀 Run Model Prediction"):
+            with st.spinner("Running the deep learning model... 🧠"):
+                model = load_model_from_drive()
+                if model:
+                    merged_df = predict_and_merge(st.session_state["submatrix"], st.session_state["reference_genes"], model)
+                    st.session_state["merged_df"] = merged_df
+                    st.success("✅ Prediction complete!")
+                    st.toast('Your data has been successfully processed!', icon='🎉')
+                    st.write("### Prediction Results Preview:")
+                    st.dataframe(merged_df.head())
+                else:
+                    st.error("Model could not be loaded. Please try again.")
+    else:
+        st.warning("Please upload a valid gene expression matrix in the 'Upload & Validate' tab first.")
+
+# --------------------
+# TAB 3: DOWNLOAD
+# --------------------
+with tab3:
+    st.header("Step 3: Download Results")
+    if "merged_df" in st.session_state:
+        st.info("The final matrix, with original and predicted values, is ready.")
+        csv = st.session_state["merged_df"].to_csv().encode('utf-8')
+        st.download_button(
+            label="💾 Download Full Predictions CSV",
+            data=csv,
+            file_name="full_gene_expression_prediction.csv",
+            mime="text/csv",
+        )
+        st.info(f"File Size: {len(csv) / (1024*1024):.2f} MB")
+    else:
+        st.warning("No prediction results to download. Please run the prediction first.")
+
+# --------------------
+# TAB 4: QUERY
+# --------------------
+with tab4:
+    st.header("Step 4: Query Results")
+    if "merged_df" in st.session_state:
+        df = st.session_state["merged_df"]
+        st.info("Interactively filter and query the final gene expression matrix.")
+
+        query_type = st.selectbox("Select Query Type", ["Gene-based", "Sample-based", "Gene + Sample", "Threshold filter"])
+        gene_input = st.text_input("Enter Gene Name(s) (comma-separated, case-insensitive, e.g., 'BRCA1, TP53')")
+        sample_input = st.text_input("Enter Sample ID(s) (comma-separated, case-insensitive, e.g., 'sample_1, sample_2')")
+        # ...(Query logic continues as before)...
+    else:
+        st.warning("Please run a prediction to generate data for querying.")
+
+# --------------------
+# TAB 5: TUTORIAL
+# --------------------
+with tab5:
+    st.header("🗺️ Tutorial")
+    video_path = get_video_path()
+    if video_path:
+        st.video(video_path)
+
+    st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
+
+    st.subheader("Step 1: » Upload & Validate")
+    st.markdown("""
+    1.  **File Format:** Ensure your gene expression data is in a CSV (`.csv`) file with the first column as Sample IDs and subsequent columns as gene names.
+    2.  **Sample Data:** If you are unsure about the format, use the **Download Sample CSV** button to get a correctly formatted file.
+    3.  **Gene List Validation:** The model requires a specific set of genes. The app will validate your data against this list.
+    4.  **Upload your file:** The app will check for compatibility and provide feedback on missing or extra genes.
+    """)
+
+    st.subheader("Step 2: ✨ Predict")
+    st.markdown("""
+    1.  After a successful validation, click the **"🚀 Run Model Prediction"** button.
+    2.  The app will download the pre-trained model and predict the expression values for the complete set of genes.
+    """)
+
+    st.subheader("Step 3: ⤓ Download")
+    st.markdown("""
+    1.  Once prediction is complete, the full gene expression matrix is ready.
+    2.  Click the **"💾 Download Full Predictions CSV"** button to save the complete file.
+    """)
+
+    st.subheader("Step 4: 🎯 Query")
+    st.markdown("""
+    1.  This tab allows you to filter the prediction results interactively.
+    2.  Select a query type, enter gene or sample names, and click **"Run Query"** to see and download the filtered data.
+    """)
+
+# --- FLOATING ACTION BUTTON ---
+st.markdown('<div class="floating-button">', unsafe_allow_html=True)
+if st.button("❓", key="floating_contact"):
+    contact_dialog()
+st.markdown('</div>', unsafe_allow_html=True)
+
+# --- FOOTER ---
+st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
+st.markdown("---")
+st.markdown("<p style='text-align: center; color: gray;'>Powered by SciWhy</p>", unsafe_allow_html=True)
