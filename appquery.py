@@ -38,7 +38,7 @@ MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
 
 # --- Image file for background ---
-BACKGROUND_IMAGE_FILE = "background.jpg"
+BACKGROUND_IMAGE_FILE = "my_background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
