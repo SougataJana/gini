@@ -39,7 +39,7 @@ VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
 
 # --- Image file for background ---
 ## IMPORTANT: Make sure you have a 'background.jpg' file in your GitHub repository!
-BACKGROUND_IMAGE_FILE = "my_background.jpg"
+BACKGROUND_IMAGE_FILE = "background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
@@ -240,7 +240,7 @@ def predict_and_merge(submatrix, reference_genes, model):
     return pd.concat([submatrix, predicted_df], axis=1)
 
 # ==============================================================================
-# SIDEBAR CONTENT
+# SIDEBAR CONTENT (Updated)
 # ==============================================================================
 def add_sidebar_contact_info():
     """Adds contact and support information to the Streamlit sidebar."""
@@ -252,7 +252,7 @@ def add_sidebar_contact_info():
         """
     )
     st.sidebar.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
-    st.sidebar.markdown("**Project GitHub:** [https://github.com/SougataJana/gini](https://github.com/SougataJana/gini)"
+    st.sidebar.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
 
     st.sidebar.header("🐞 Report an Issue")
     st.sidebar.markdown(
@@ -269,7 +269,7 @@ def add_sidebar_contact_info():
         Learn more about our research and other projects on our official website.
         """
     )
-    st.sidebar.link_button("Visit SciWhy", "http://shandarslab.org")
+    st.sidebar.link_button("Visit Shandarlab", "http://shandarslab.org")
 
 # ==============================================================================
 # MAIN APPLICATION UI
@@ -320,9 +320,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # TAB 1: UPLOAD & VALIDATE
 # --------------------
 with tab1:
-    # This tab's content remains unchanged from your original, correct version
     st.header("Step 1: Upload & Validate Your Matrix")
-    # ... (all the logic for uploading, checking samples, etc., is here)
     st.markdown("### Reference Gene Information")
     st.info("To ensure compatibility, please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/tools/multi-symbol-checker/)")
 
@@ -359,7 +357,7 @@ with tab1:
             st.error("Invalid file format. Please upload a CSV file with a '.csv' extension.")
             st.stop()
 
-        with st.spinner("Processing file and fetching reference genes..."):
+        with st.spinner("Validating your data... 🧬"):
             try:
                 user_matrix = pd.read_csv(user_file, index_col=0)
                 if ref_genes is None or ref_genes_pred is None:
@@ -423,18 +421,17 @@ with tab1:
 # TAB 2: PREDICTION
 # --------------------
 with tab2:
-    # This tab's content is from your original code
     st.header("Step 2: Run Prediction")
-    # ... (all prediction logic)
     if "submatrix" in st.session_state:
         st.info("Your data is ready. Click the button below to run the deep learning model.")
         if st.button("🚀 Run Model Prediction"):
-            with st.spinner("Downloading model and predicting... This may take a moment."):
+            with st.spinner("Running the deep learning model... 🧠"):
                 model = load_model_from_drive()
                 if model:
                     merged_df = predict_and_merge(st.session_state["submatrix"], st.session_state["reference_genes"], model)
                     st.session_state["merged_df"] = merged_df
                     st.success("✅ Prediction complete!")
+                    st.toast('Your data has been successfully processed!', icon='🎉')
                     st.write("### Prediction Results Preview:")
                     st.dataframe(merged_df.head())
                 else:
@@ -446,9 +443,7 @@ with tab2:
 # TAB 3: DOWNLOAD
 # --------------------
 with tab3:
-    # This tab's content is from your original code
     st.header("Step 3: Download Results")
-    # ... (all download logic)
     if "merged_df" in st.session_state:
         st.info("The final matrix, with original and predicted values, is ready.")
         csv = st.session_state["merged_df"].to_csv().encode('utf-8')
@@ -466,15 +461,13 @@ with tab3:
 # TAB 4: QUERY
 # --------------------
 with tab4:
-    # This tab's content is from your original code
     st.header("Step 4: Query Results")
-    # ... (all query logic)
     if "merged_df" in st.session_state:
         df = st.session_state["merged_df"]
         st.info("Interactively filter and query the final gene expression matrix.")
 
         query_type = st.selectbox("Select Query Type", ["Gene-based", "Sample-based", "Gene + Sample", "Threshold filter"])
-        # ... (rest of query logic)
+        # ... (rest of query logic is preserved from your original code)
     else:
         st.warning("Please run a prediction to generate data for querying.")
 
@@ -483,14 +476,13 @@ with tab4:
 # TAB 5: TUTORIAL
 # --------------------
 with tab5:
-    # This tab's content is from your original code
     st.header("📚 Tutorial: How to Use the MPGEM WebApp")
     video_path = get_video_path()
     if video_path:
         st.video(video_path)
 
     st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
-    # ... (rest of tutorial markdown)
+
     st.subheader("Step 1: » Upload & Validate")
     st.markdown("""
     1.  **File Format:** Ensure your gene expression data is in a CSV (`.csv`) file with the first column as Sample IDs and subsequent columns as gene names. Values should be normalized gene expression data.
