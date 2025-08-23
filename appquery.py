@@ -38,21 +38,18 @@ MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
 
 # --- Image file for background ---
-BACKGROUND_IMAGE_FILE = "my_background.jpg"
+BACKGROUND_IMAGE_FILE = "background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
 # --------------------
 def custom_activation(x):
     return K.sigmoid(x) * 12
-
 get_custom_objects().update({'custom_activation': Activation(custom_activation)})
-
 
 # ------------------------------------------------------------------------------
 # UI STYLING & APPEARANCE
 # ------------------------------------------------------------------------------
-
 @st.cache_data
 def get_img_as_base64(file):
     with open(file, "rb") as f:
@@ -73,27 +70,34 @@ def load_css_and_background():
             from {{ opacity: 0; transform: translateY(30px); }}
             to {{ opacity: 1; transform: translateY(0); }}
         }}
+        @keyframes pulse {{
+            0% {{
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(72, 198, 239, 0.7);
+            }}
+            70% {{
+                transform: scale(1.1);
+                box-shadow: 0 0 0 15px rgba(72, 198, 239, 0);
+            }}
+            100% {{
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(72, 198, 239, 0);
+            }}
+        }}
         .stApp {{
             {f'''
             background-image:
                 linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
                 url("data:image/jpeg;base64,{img}");
             ''' if img else "background-color: #0e1117;"}
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-size: cover; background-position: center;
+            background-repeat: no-repeat; background-attachment: fixed;
         }}
-        .main .block-container {{
-            background-color: transparent !important;
-        }}
+        .main .block-container {{ background-color: transparent !important; }}
         .header-section, .stTabs, .stExpander {{
-            background: rgba(28, 43, 56, 0.65);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+            background: rgba(28, 43, 56, 0.65); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px;
+            padding: 2rem; margin-bottom: 2rem;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             animation: fadeInUp 0.8s ease-in-out;
         }}
@@ -129,18 +133,20 @@ def load_css_and_background():
             color: #ffffff; font-weight: bold;
         }}
         .floating-button {{
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 1000;
+            position: fixed; bottom: 40px; right: 40px; z-index: 1000;
         }}
         .floating-button .stButton>button {{
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            font-size: 24px;
-            padding: 0;
-            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
+            animation: pulse 2.5s infinite;
+            width: 65px; height: 65px;
+            border-radius: 50%; font-size: 30px;
+            padding: 0; border: none;
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }}
+        .floating-button .stButton>button:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.4);
         }}
         </style>
         """,
@@ -218,7 +224,7 @@ def predict_and_merge(submatrix, reference_genes, model):
 # ==============================================================================
 def contact_dialog():
     with st.dialog("Contact & Support"):
-        st.header("📧 Contact Information")
+        st.header("💬 Contact & Support")
         st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
         st.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
         st.divider()
@@ -238,7 +244,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Apply the custom CSS and background
 load_css_and_background()
 
 # --- HEADER ---
@@ -256,10 +261,7 @@ with st.container():
         """,
         unsafe_allow_html=True
     )
-
 st.divider()
-
-# --- TABS FOR NAVIGATION ---
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "» Upload & Validate", "✨ Predict", "⤓ Download", "🎯 Query", "🗺️ Tutorial"
 ])
@@ -417,7 +419,27 @@ with tab4:
         query_type = st.selectbox("Select Query Type", ["Gene-based", "Sample-based", "Gene + Sample", "Threshold filter"])
         gene_input = st.text_input("Enter Gene Name(s) (comma-separated, case-insensitive, e.g., 'BRCA1, TP53')")
         sample_input = st.text_input("Enter Sample ID(s) (comma-separated, case-insensitive, e.g., 'sample_1, sample_2')")
-        # ...(Query logic continues as before)...
+        
+        if st.button("Run Query"):
+            filtered_df = df.copy()
+            if gene_input:
+                gene_list = [g.strip().upper() for g in gene_input.split(",") if g.strip()]
+                matching_genes = [col for col in df.columns if col.upper() in gene_list]
+                if not matching_genes:
+                    st.error("No matching genes found.")
+                else:
+                    filtered_df = filtered_df[matching_genes]
+            if sample_input:
+                sample_list = [s.strip() for s in sample_input.split(",") if s.strip()]
+                filtered_df = filtered_df[filtered_df.index.isin(sample_list)]
+            
+            if not filtered_df.empty:
+                st.write("### Query Result:")
+                st.dataframe(filtered_df)
+                csv_query = filtered_df.to_csv().encode('utf-8')
+                st.download_button("Download Query Result", csv_query, "query_result.csv", "text/csv")
+            else:
+                st.warning("Query returned no results.")
     else:
         st.warning("Please run a prediction to generate data for querying.")
 
@@ -460,7 +482,7 @@ with tab5:
 
 # --- FLOATING ACTION BUTTON ---
 st.markdown('<div class="floating-button">', unsafe_allow_html=True)
-if st.button("❓", key="floating_contact"):
+if st.button("💬", key="floating_contact"):
     contact_dialog()
 st.markdown('</div>', unsafe_allow_html=True)
 
