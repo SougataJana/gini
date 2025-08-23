@@ -31,14 +31,11 @@ from tensorflow.keras.models import load_model
 # --------------------
 # CONFIGURATION & CONSTANTS
 # --------------------
-# --- Google Drive File IDs ---
 REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
 MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
 MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
-
-# --- Image file for background ---
-BACKGROUND_IMAGE_FILE = "my_background.jpg"
+BACKGROUND_IMAGE_FILE = "background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
@@ -89,64 +86,50 @@ def load_css_and_background():
             background-image:
                 linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
                 url("data:image/jpeg;base64,{img}");
-            ''' if img else "background-color: #0e1117;"}
+            ''' if img else "background-color: #0e117;"}
             background-size: cover; background-position: center;
             background-repeat: no-repeat; background-attachment: fixed;
         }}
         .main .block-container {{ background-color: transparent !important; }}
-        .header-section, .stTabs, .stExpander {{
+        .header-section, .stTabs, .stExpander, .st-emotion-cache-1jicfl2 {{
             background: rgba(28, 43, 56, 0.65); backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px;
             padding: 2rem; margin-bottom: 2rem;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            animation: fadeInUp 0.8s ease-in-out;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); animation: fadeInUp 0.8s ease-in-out;
         }}
         h1, h2, h3, p, .stMarkdown, label {{ color: #ffffff; }}
         .main-title {{
-            font-size: 3.5rem; font-weight: 800; color: #ffffff;
-            text-align: center; margin-bottom: -0.2em;
-            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+            font-size: 3.5rem; font-weight: 800; text-align: center;
+            margin-bottom: -0.2em; text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
         }}
         .main-subtitle {{
-            font-size: 1.5rem; color: #a0b0c0;
-            text-align: center; margin-bottom: 2rem;
+            font-size: 1.5rem; color: #a0b0c0; text-align: center; margin-bottom: 2rem;
         }}
         .stButton>button {{
-            background: linear-gradient(90deg, #1a73e8, #4285f4);
-            color: white; font-weight: bold; font-size: 16px;
-            border-radius: 10px; padding: 14px 28px; border: none;
-            box-shadow: 0 4px 15px rgba(0, 115, 255, 0.3);
-            transition: all 0.3s ease;
+            background: linear-gradient(90deg, #1a73e8, #4285f4); color: white; font-weight: bold; font-size: 16px;
+            border-radius: 10px; padding: 14px 28px; border: none; box-shadow: 0 4px 15px rgba(0, 115, 255, 0.3); transition: all 0.3s ease;
         }}
-        .stButton>button:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 115, 255, 0.5);
-        }}
+        .stButton>button:hover {{ transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 115, 255, 0.5); }}
         .stTabs [data-baseweb="tab-list"] {{ gap: 12px; }}
-        .stTabs [data-baseweb="tab"] {{
-            background-color: transparent; border-radius: 8px;
-            padding: 10px 16px; color: #a0b0c0;
-            transition: all 0.2s ease;
-        }}
-        .stTabs [aria-selected="true"] {{
-            background: rgba(26, 115, 232, 0.3);
-            color: #ffffff; font-weight: bold;
-        }}
-        .floating-button {{
-            position: fixed; bottom: 40px; right: 40px; z-index: 1000;
-        }}
+        .stTabs [data-baseweb="tab"] {{ background-color: transparent; border-radius: 8px; padding: 10px 16px; color: #a0b0c0; transition: all 0.2s ease; }}
+        .stTabs [aria-selected="true"] {{ background: rgba(26, 115, 232, 0.3); color: #ffffff; font-weight: bold; }}
+        .floating-button {{ position: fixed; bottom: 40px; right: 40px; z-index: 1000; }}
         .floating-button .stButton>button {{
-            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
-            animation: pulse 2.5s infinite;
-            width: 65px; height: 65px;
-            border-radius: 50%; font-size: 30px;
-            padding: 0; border: none;
-            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%); animation: pulse 2.5s infinite;
+            width: 65px; height: 65px; border-radius: 50%; font-size: 30px;
+            padding: 0; border: none; box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3); transition: all 0.3s ease;
         }}
-        .floating-button .stButton>button:hover {{
-            transform: translateY(-5px);
-            box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.4);
+        .floating-button .stButton>button:hover {{ transform: translateY(-5px); box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.4); }}
+        
+        .close-button-container .stButton>button {{
+            background: transparent !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+        }}
+        .close-button-container .stButton>button:hover {{
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: #ffffff !important;
+            color: #ffffff !important;
         }}
         </style>
         """,
@@ -220,33 +203,35 @@ def predict_and_merge(submatrix, reference_genes, model):
     return pd.concat([submatrix, predicted_df], axis=1)
 
 # ==============================================================================
-# CONTACT DIALOG FUNCTION
+# CONTACT POP-UP (using Session State for compatibility)
 # ==============================================================================
-def contact_dialog():
-    with st.dialog("Contact & Support"):
-        st.header("💬 Contact & Support")
-        st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
-        st.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
-        st.divider()
-        st.header("🐞 Report an Issue")
-        st.markdown("Encountered a bug? Please open an issue on our GitHub page.")
-        st.link_button("Submit an Issue", "https://github.com/SougataJana/gini/issues/new")
-        st.divider()
-        st.markdown("*This application is maintained by the SciWhy team.*")
+def contact_popup():
+    if "show_contact" in st.session_state and st.session_state.show_contact:
+        with st.container(border=True):
+            st.header("💬 Contact & Support")
+            st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
+            st.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
+            st.divider()
+            st.header("🐞 Report an Issue")
+            st.markdown("Encountered a bug? Please open an issue on our GitHub page.")
+            st.link_button("Submit an Issue", "https://github.com/SougataJana/gini/issues/new")
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            st.markdown('<div class="close-button-container">', unsafe_allow_html=True)
+            if st.button("Close", key="close_contact_popup", use_container_width=True):
+                st.session_state.show_contact = False
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
 # ==============================================================================
 # MAIN APPLICATION UI
 # ==============================================================================
 
-st.set_page_config(
-    page_title="MPGEM Predictor",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="MPGEM Predictor", layout="wide", initial_sidebar_state="collapsed")
 
+contact_popup()
 load_css_and_background()
 
-# --- HEADER ---
 st.markdown('<h1 class="main-title">🔬 MPGEM</h1>', unsafe_allow_html=True)
 st.markdown('<p class="main-subtitle">Molecular Prediction of Gene Expression Matrix</p>', unsafe_allow_html=True)
 with st.container():
@@ -262,9 +247,7 @@ with st.container():
         unsafe_allow_html=True
     )
 st.divider()
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "» Upload & Validate", "✨ Predict", "⤓ Download", "🎯 Query", "🗺️ Tutorial"
-])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["» Upload & Validate", "✨ Predict", "⤓ Download", "🎯 Query", "🗺️ Tutorial"])
 
 # --------------------
 # TAB 1: UPLOAD & VALIDATE
@@ -482,8 +465,11 @@ with tab5:
 
 # --- FLOATING ACTION BUTTON ---
 st.markdown('<div class="floating-button">', unsafe_allow_html=True)
+if "show_contact" not in st.session_state:
+    st.session_state.show_contact = False
 if st.button("💬", key="floating_contact"):
-    contact_dialog()
+    st.session_state.show_contact = True
+    st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
 
 # --- FOOTER ---
