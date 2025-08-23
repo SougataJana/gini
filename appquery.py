@@ -1,5 +1,5 @@
 # ==============================================================================
-# MPGEM: Molecular Prediction of Gene Expression Matrix (v9 - Combined Header)
+# MPGEM: Molecular Prediction of Gene Expression Matrix (v10 - Final Design)
 # A Streamlit web application for gene expression prediction using a deep
 # learning model.
 #
@@ -35,7 +35,7 @@ REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
 MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
 MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
-BACKGROUND_IMAGE_FILE = "my_background.jpg"
+BACKGROUND_IMAGE_FILE = "background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
@@ -62,9 +62,9 @@ def load_css_and_background():
         /* --- Animation Keyframes --- */
         @keyframes fadeInUp {{ from {{ opacity: 0; transform: translateY(30px); }} to {{ opacity: 1; transform: translateY(0); }} }}
         @keyframes pulse {{
-            0% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(72, 198, 239, 0.7); }}
-            70% {{ transform: scale(1.05); box-shadow: 0 0 0 15px rgba(72, 198, 239, 0); }}
-            100% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(72, 198, 239, 0); }}
+            0% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }}
+            70% {{ transform: scale(1.05); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }}
+            100% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }}
         }}
         @keyframes shimmer {{
             0% {{ background-position: -200% center; }}
@@ -74,6 +74,11 @@ def load_css_and_background():
             from {{ width: 0; }}
             to {{ width: 300px; }}
         }}
+        @keyframes gradient-shift {{
+            0% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+            100% {{ background-position: 0% 50%; }}
+        }}
 
         /* --- Main App Styling --- */
         .stApp {{
@@ -81,87 +86,71 @@ def load_css_and_background():
             background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;
         }}
         .main .block-container {{ background-color: transparent !important; }}
-        .header-section, .stTabs, .stExpander, .st-emotion-cache-1jicfl2 {{
+        .header-section, .stTabs, .stExpander, .st-emotion-cache-1jicfl2, [data-testid="stAlert"] {{
             background: rgba(28, 43, 56, 0.65); backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px;
             padding: 2rem; margin-bottom: 2rem; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             animation: fadeInUp 0.8s ease-in-out;
         }}
+        [data-testid="stAlert"] {{ padding: 1rem 1.5rem !important; }}
         h1, h2, h3, p, .stMarkdown, label {{ color: #ffffff; }}
         
-        /* --- COMBINED HEADER STYLES --- */
-        
-         /* --- COMBINED HEADER STYLES (Corrected) --- */
-        .app-header {
-            text-align: center;
-            margin-bottom: 3rem; 
-        }
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative; /* Context for the underline */
-            padding-bottom: 20px; /* Space for the underline */
-            margin-bottom: 1rem; /* Space between underline and subtitle */
-        }
-        .header-container::after { /* Animated Underline */
-            content: '';
-            display: block;
-            width: 0px; 
-            height: 3px;
-            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
-            position: absolute;
-            bottom: 0; /* Positioned at the bottom of the icon+title container */
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 2px;
-            animation: draw-line 1.2s ease-out 0.5s forwards;
-        }
-        .header-svg {
-            stroke: #48c6ef;
-        }
-        .main-title {
-            font-size: 4rem;
-            font-weight: 800;
-            background: linear-gradient(120deg, #48c6ef, #ffffff, #6f86d6, #48c6ef);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shimmer 5s linear infinite;
-        }
-        .main-subtitle { 
-            font-size: 1.5rem; 
-            color: #a0b0c0; 
-        }
-            /* Animated Gradient Text */
-            background: linear-gradient(120deg, #48c6ef, #ffffff, #6f86d6, #48c6ef);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shimmer 5s linear infinite;
+        /* --- Combined Header Styles --- */
+        .app-header {{ text-align: center; margin-bottom: 3rem; }}
+        .header-container {{
+            display: flex; align-items: center; justify-content: center;
+            position: relative; padding-bottom: 20px; margin-bottom: 1rem;
         }}
-        .main-subtitle {{ font-size: 1.5rem; color: #a0b0c0; text-align: center; }}
+        .header-container::after {{
+            content: ''; display: block; width: 0px; height: 3px;
+            background: linear-gradient(135deg, #10b981 0%, #6ee7b7 100%);
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            border-radius: 2px; animation: draw-line 1.2s ease-out 0.5s forwards;
+        }}
+        .header-svg {{ stroke: #6ee7b7; }}
+        .main-title {{
+            font-size: 4rem; font-weight: 800;
+            background: linear-gradient(120deg, #6ee7b7, #ffffff, #10b981, #6ee7b7);
+            background-size: 200% auto; -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; animation: shimmer 5s linear infinite;
+        }}
+        .main-subtitle {{ font-size: 1.5rem; color: #a0b0c0; }}
         
-        /* --- Unified Button & Other Styles --- */
+        /* --- Unified Button Style --- */
         .stButton>button {{
-            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
+            background: linear-gradient(135deg, #10b981 0%, #6ee7b7 100%);
             color: white; font-weight: bold; font-size: 16px;
             border-radius: 10px; padding: 14px 28px; border: none;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;
         }}
         .stButton>button:hover {{ transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }}
+        
         .stTabs [data-baseweb="tab-list"] {{ gap: 12px; }}
         .stTabs [data-baseweb="tab"] {{ background-color: transparent; border-radius: 8px; padding: 10px 16px; color: #a0b0c0; transition: all 0.2s ease; }}
-        .stTabs [aria-selected="true"] {{ background: rgba(72, 198, 239, 0.3); color: #ffffff; font-weight: bold; }}
-        .floating-button {{ position: fixed; bottom: 40px; right: 40px; z-index: 1000; }}
+        .stTabs [aria-selected="true"] {{ background: rgba(16, 185, 129, 0.3); color: #ffffff; font-weight: bold; }}
+        
+        /* --- ADVANCED Floating Action Button Styles --- */
         .floating-button .stButton>button {{
-            animation: pulse 2.5s infinite;
-            width: 65px; height: 65px; border-radius: 50%; font-size: 30px;
-            padding: 0;
+            background-size: 300% 300%;
+            animation: pulse 2.5s infinite, gradient-shift 8s ease infinite;
+            width: 65px; height: 65px; border-radius: 50%; font-size: 30px; padding: 0;
         }}
+        .floating-button .stButton>button:hover {{
+            transform: translateY(-5px) rotate(10deg);
+            box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.4);
+        }}
+        .fab-text {{
+            visibility: hidden; width: 150px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 6px; padding: 5px 0;
+            position: absolute; z-index: 1; bottom: 25%; right: 120%;
+            opacity: 0; transition: opacity 0.3s, transform 0.3s;
+            transform: translateX(10px);
+        }}
+        .floating-button:hover .fab-text {{ visibility: visible; opacity: 1; transform: translateX(0); }}
+        #fab-st-button-container {{ position: fixed; bottom: 40px; right: 40px; z-index: 1000; }}
+        
         .popup-container {{
-            position: fixed; bottom: 120px; right: 40px;
-            width: 350px; z-index: 999;
+            position: fixed; bottom: 120px; right: 40px; width: 350px; z-index: 999;
             animation: fadeInUp 0.5s ease-in-out;
         }}
         .close-button-container .stButton>button {{
@@ -180,7 +169,6 @@ def load_css_and_background():
 # ------------------------------------------------------------------------------
 # DATA & MODEL LOADING AND CORE LOGIC FUNCTIONS
 # ------------------------------------------------------------------------------
-# (These functions are complete and unchanged)
 @st.cache_data
 def load_reference_genes():
     try:
@@ -277,7 +265,7 @@ def contact_popup():
 st.set_page_config(page_title="MPGEM Predictor", layout="wide", initial_sidebar_state="collapsed")
 load_css_and_background()
 
-# --- NEW COMBINED HEADER ---
+# --- COMBINED HEADER ---
 st.markdown("""
     <div class="app-header">
         <div class="header-container">
@@ -312,13 +300,11 @@ with tab1:
     st.header("Step 1: Upload & Validate Your Matrix")
     st.markdown("### Reference Gene Information")
     st.info("To ensure compatibility, please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/tools/multi-symbol-checker/)")
-
     ref_genes, ref_genes_pred = load_reference_genes()
     if ref_genes_pred:
         with st.expander(f"View the {len(ref_genes_pred)} required reference genes"):
             st.markdown("The app will automatically re-order the genes to match the model's input format...")
             st.dataframe(pd.DataFrame(ref_genes_pred, columns=['Required Gene Names']))
-
     st.divider()
     st.subheader("Upload Your Data")
     col1, col2 = st.columns([1.5, 1])
@@ -333,7 +319,6 @@ with tab1:
             st.download_button(label="Download Sample CSV", data=sample_csv_data, file_name="sample_csv_for_testing.csv", mime="text/csv", key="sample_download_button")
         except FileNotFoundError:
             st.warning("Sample file not found. Please ensure 'sample_csv_for_testing.csv' is in the same directory.")
-
     if user_file:
         with st.spinner("Validating your data... 🧬"):
             try:
@@ -475,12 +460,19 @@ st.markdown('<div class="popup-container">', unsafe_allow_html=True)
 contact_popup()
 st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="floating-button">', unsafe_allow_html=True)
-if "show_contact" not in st.session_state: st.session_state.show_contact = False
-if st.button("💬", key="floating_contact"):
-    st.session_state.show_contact = not st.session_state.show_contact
-    st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("""
+<div class="floating-button">
+    <div class="fab-text">Contact & Support</div>
+    <div id="fab-st-button-container"></div>
+</div>
+""", unsafe_allow_html=True)
+
+_, fab_col = st.columns([0.92, 0.08])
+with fab_col:
+    if "show_contact" not in st.session_state: st.session_state.show_contact = False
+    if st.button("💬", key="floating_contact"):
+        st.session_state.show_contact = not st.session_state.show_contact
+        st.rerun()
 
 # --- FOOTER ---
 st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
