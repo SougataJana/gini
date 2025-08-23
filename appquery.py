@@ -251,7 +251,7 @@ def add_sidebar_contact_info():
         please feel free to reach out.
         """
     )
-    st.sidebar.markdown("**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>", unsafe_allow_html=True)
+    st.sidebar.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
     st.sidebar.markdown("**Project GitHub:** [https://github.com/SougataJana/gini](https://github.com/SougataJana/gini)"
 
     st.sidebar.header("🐞 Report an Issue")
