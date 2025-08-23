@@ -73,19 +73,19 @@ def load_css_and_background():
     st.markdown(
         f"""
         <style>
-        /* --- NEW: Keyframes for the fade-in-up animation --- */
+        /* --- FADE-IN ON LOAD ANIMATION --- */
         @keyframes fadeInUp {{
-            from {{
+            0% {{
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }}
-            to {{
+            100% {{
                 opacity: 1;
                 transform: translateY(0);
             }}
         }}
 
-        /* --- CORE APP STYLING (with corrected overlay) --- */
+        /* --- CORE APP STYLING --- */
         .stApp {{
             {f'''
             background-image:
@@ -95,7 +95,7 @@ def load_css_and_background():
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-attachment: fixed; /* This is key for scrolling */
+            background-attachment: fixed; /* This creates the parallax effect */
         }}
 
         /* --- Ensure main content area is transparent to see the background --- */
@@ -103,7 +103,7 @@ def load_css_and_background():
             background-color: transparent !important;
         }}
 
-        /* --- FROSTED GLASS EFFECT FOR CONTAINERS (with scroll animation) --- */
+        /* --- FROSTED GLASS EFFECT & FADE-IN ANIMATION FOR CONTAINERS --- */
         .header-section, .stTabs, .stExpander {{
             background: rgba(28, 43, 56, 0.65);
             backdrop-filter: blur(12px);
@@ -113,9 +113,12 @@ def load_css_and_background():
             padding: 2rem;
             margin-bottom: 2rem;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            
-            /* --- NEW: Applying the animation here --- */
-            animation: fadeInUp 0.8s ease-in-out;
+            animation: fadeInUp 0.8s ease-out forwards; /* Apply the animation */
+        }}
+
+        /* Add a slight delay for the tabs to animate after the header */
+        .stTabs {{
+            animation-delay: 0.2s;
         }}
 
         /* --- TYPOGRAPHY --- */
@@ -404,7 +407,7 @@ with tab4:
             if sample_input:
                 sample_list = [s.strip() for s in sample_input.split(",") if s.strip()]
                 filtered_df = filtered_df[filtered_df.index.isin(sample_list)]
-            
+
             if not filtered_df.empty:
                 st.write("### Query Result:")
                 st.dataframe(filtered_df)
@@ -424,16 +427,16 @@ with tab5:
     video_path = get_video_path()
     if video_path:
         st.video(video_path)
-    
+
     st.subheader("Step 1: » Upload & Validate")
     st.markdown("Ensure your data is a CSV file with Sample IDs in the first column and gene names as headers. Use the **Download Sample CSV** button for a format example.")
-    
+
     st.subheader("Step 2: ✨ Predict")
     st.markdown("After a successful validation, click **Run Model Prediction**. The app will download the model and generate the complete gene expression matrix.")
-    
+
     st.subheader("Step 3: ⤓ Download")
     st.markdown("Once prediction is done, download the complete CSV file containing both your original and the newly predicted data.")
-    
+
     st.subheader("Step 4: 🎯 Query")
     st.markdown("Interactively filter the results by gene or sample names to inspect specific data points.")
 
