@@ -433,15 +433,45 @@ with tab5:
     video_path = get_video_path()
     if video_path:
         st.video(video_path)
-    st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you...")
+
+    st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
+
     st.subheader("Step 1: » Upload & Validate")
-    st.markdown("""1. **File Format:** ...""")
+    st.markdown(
+        """
+        1.  **File Format:** Ensure your gene expression data is in a CSV (`.csv`) file with the first column as Sample IDs and subsequent columns as gene names. Values should be normalized gene expression data.
+        2.  **Sample Data:** If you are unsure about the format, use the **Download Sample CSV** button to get a correctly formatted file.
+        3.  **Gene List Validation:** The model requires a specific set of 12,712 genes. The app will validate your data against this list.
+        4.  **Upload your file:** Click **"Upload Your CSV File Here"** to upload your gene expression matrix. The app will check for compatibility and provide feedback.
+        """
+    )
+
     st.subheader("Step 2: ✨ Predict")
-    st.markdown("""1. After a successful validation, click ...""")
+    st.markdown(
+        """
+        1.  After a successful compatibility check in Step 1, navigate to this tab.
+        2.  Click the **"🚀 Run Model Prediction"** button.
+        3.  The app will download the pre-trained neural network model and predict the expression values for the complete set of genes.
+        4.  This process may take a few minutes. A preview of the combined matrix will be shown once the prediction is complete.
+        """
+    )
+
     st.subheader("Step 3: ⤓ Download")
-    st.markdown("""1. Once prediction is complete, ...""")
+    st.markdown(
+        """
+        1.  Once the prediction is complete, the full gene expression matrix is ready.
+        2.  Click the **"💾 Download Full Predictions CSV"** button to download the complete file, including all predicted gene expression values, to your local computer.
+        """
+    )
+
     st.subheader("Step 4: 🎯 Query")
-    st.markdown("""1. This tab allows you to filter ...""")
+    st.markdown(
+        """
+        1.  This tab allows you to filter the prediction results interactively.
+        2.  Select a **Query Type**, then use the text boxes to enter comma-separated gene names or sample IDs.
+        3.  Click **"Run Query"** to see the filtered results, which you can also download as a new CSV file.
+        """
+    )
 
 # --- POP-UP and FLOATING BUTTON LOGIC ---
 st.markdown('<div class="popup-container">', unsafe_allow_html=True)
