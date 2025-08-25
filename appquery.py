@@ -1,10 +1,10 @@
 # ==============================================================================
-# MPGEM: Molecular Prediction of Gene Expression Matrix (v1)
+# MPGEM: Molecular Prediction of Gene Expression Matrix (v14 - Professional Icons)
 # A Streamlit web application for gene expression prediction using a deep
 # learning model.
 #
 # Author: SciWhy
-# Last Updated: August 24, 2025
+# Last Updated: August 25, 2025
 # ==============================================================================
 
 # --------------------
@@ -35,7 +35,7 @@ REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
 MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
 MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
-BACKGROUND_IMAGE_FILE = "my_background.jpg"
+BACKGROUND_IMAGE_FILE = "background.jpg"
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
@@ -125,7 +125,7 @@ def load_css_and_background():
         .stTabs [data-baseweb="tab"] {{ background-color: transparent; border-radius: 8px; padding: 10px 16px; color: #a0b0c0; transition: all 0.2s ease; }}
         .stTabs [aria-selected="true"] {{ background: rgba(220, 53, 69, 0.3); color: #ffffff; font-weight: bold; }}
         
-        /* --- Floating Action Button Styles (Red & White Theme) --- */
+        /* --- ADVANCED Floating Action Button Styles (Red & White Theme) --- */
         #fab-container {{
             position: fixed; bottom: 40px; right: 40px; z-index: 1000;
         }}
@@ -141,6 +141,14 @@ def load_css_and_background():
             transform: translateY(-5px) rotate(10deg);
             box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.4);
         }}
+        .fab-text {{
+            visibility: hidden; width: 150px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 6px; padding: 5px 0;
+            position: absolute; z-index: 1; bottom: 25%; right: 120%;
+            opacity: 0; transition: opacity 0.3s, transform 0.3s;
+            transform: translateX(10px);
+        }}
+        #fab-container:hover .fab-text {{ visibility: visible; opacity: 1; transform: translateX(0); }}
         
         .popup-container {{
             position: fixed; bottom: 120px; right: 40px; width: 350px; z-index: 999;
@@ -153,6 +161,23 @@ def load_css_and_background():
         .close-button-container .stButton>button:hover {{
             background: rgba(255, 255, 255, 0.1) !important; border-color: #ffffff !important;
             color: #ffffff !important;
+        }}
+        
+        /* --- Styles for "Industry Level" Icons in Pop-up --- */
+        .popup-header {{
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }}
+        .popup-header svg {{
+            width: 24px; height: 24px;
+            stroke: #dc3545; /* Themed red color for the icon stroke */
+            stroke-width: 2;
+            margin-right: 10px; /* Space between icon and text */
+        }}
+        .popup-header h3 {{
+            margin: 0; /* Remove default margins from header text */
+            font-size: 1.25rem;
         }}
         </style>
         """,
@@ -223,29 +248,42 @@ def predict_and_merge(submatrix, reference_genes, model):
     return pd.concat([submatrix, predicted_df], axis=1)
 
 # ==============================================================================
-# CONTACT POP-UP
+# CONTACT POP-UP (with SVG Icons)
 # ==============================================================================
 def contact_popup():
     if "show_contact" in st.session_state and st.session_state.show_contact:
         with st.container(border=True):
-            st.header("💬 Contact & Support")
-            st.markdown(
-                """
-                This application is maintained by the SciWhy team. For any inquiries,
-                please feel free to reach out.
-                """
-            )
-            st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">sougataj1@gmail.com</a>', unsafe_allow_html=True)
+            st.markdown("""
+                <div class="popup-header">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    <h3>Contact & Support</h3>
+                </div>
+            """, unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>This application is maintained by the SciWhy team. For any inquiries, please feel free to reach out.</p>", unsafe_allow_html=True)
+            st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
             st.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
             st.divider()
-            st.subheader("🐞 Report an Issue")
-            st.markdown("Encountered a bug? Please open an issue on our GitHub page.")
+
+            st.markdown("""
+                <div class="popup-header">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <h3>Report an Issue</h3>
+                </div>
+            """, unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>Encountered a bug? Please open an issue on our GitHub page.</p>", unsafe_allow_html=True)
             st.link_button("Submit an Issue", "https://github.com/SougataJana/gini/issues/new")
             st.divider()
-            st.subheader("🤝 About Us")
-            st.markdown("Learn more about our research and other projects.")
+
+            st.markdown("""
+                <div class="popup-header">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <h3>About Us</h3>
+                </div>
+            """, unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>Learn more about our research and other projects.</p>", unsafe_allow_html=True)
             st.link_button("Visit Shandarlab", "http://shandarslab.org")
             st.markdown("<br>", unsafe_allow_html=True)
+            
             st.markdown('<div class="close-button-container">', unsafe_allow_html=True)
             if st.button("Close", key="close_contact_popup", use_container_width=True):
                 st.session_state.show_contact = False
@@ -258,7 +296,7 @@ def contact_popup():
 st.set_page_config(page_title="MPGEM Predictor", layout="wide", initial_sidebar_state="collapsed")
 load_css_and_background()
 
-# --- SIMPLIFIED HEADER ---
+# --- HEADER ---
 st.markdown("""
     <div class="app-header">
         <h1 class="main-title">MPGEM</h1>
@@ -287,7 +325,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(["» Upload & Validate", "✨ Predict", "
 with tab1:
     st.header("Step 1: Upload & Validate Your Matrix")
     st.markdown("### Reference Gene Information")
-    st.info("To ensure compatibility, please verify your gene list using the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/tools/multi-symbol-checker/)")
+    st.info("To ensure compatibility, please verify your gene list uses the correct nomenclature at: [HUGO Gene Nomenclature Committee](https://www.genenames.org/tools/multi-symbol-checker/)")
     ref_genes, ref_genes_pred = load_reference_genes()
     if ref_genes_pred:
         with st.expander(f"View the {len(ref_genes_pred)} required reference genes"):
@@ -433,9 +471,7 @@ with tab5:
     video_path = get_video_path()
     if video_path:
         st.video(video_path)
-
     st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
-
     st.subheader("Step 1: » Upload & Validate")
     st.markdown(
         """
@@ -445,7 +481,6 @@ with tab5:
         4.  **Upload your file:** Click **"Upload Your CSV File Here"** to upload your gene expression matrix. The app will check for compatibility and provide feedback.
         """
     )
-
     st.subheader("Step 2: ✨ Predict")
     st.markdown(
         """
@@ -455,7 +490,6 @@ with tab5:
         4.  This process may take a few minutes. A preview of the combined matrix will be shown once the prediction is complete.
         """
     )
-
     st.subheader("Step 3: ⤓ Download")
     st.markdown(
         """
@@ -463,7 +497,6 @@ with tab5:
         2.  Click the **"💾 Download Full Predictions CSV"** button to download the complete file, including all predicted gene expression values, to your local computer.
         """
     )
-
     st.subheader("Step 4: 🎯 Query")
     st.markdown(
         """
@@ -479,12 +512,12 @@ contact_popup()
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div id="fab-container">', unsafe_allow_html=True)
-if "show_contact" not in st.session_state: st.session_state.show_contact = False
+if "show_contact" not in st.session_state:
+    st.session_state.show_contact = False
 if st.button("💬", key="floating_contact"):
     st.session_state.show_contact = not st.session_state.show_contact
     st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
-
 
 # --- FOOTER ---
 st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
