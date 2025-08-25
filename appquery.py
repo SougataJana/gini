@@ -1,9 +1,9 @@
 # ==============================================================================
-# MPGEM: Molecular Prediction of Gene Expression Matrix (v14 - Professional Icons)
+# MPGEM: Molecular Prediction of Gene Expression Matrix (v15 - Animated Background)
 # A Streamlit web application for gene expression prediction using a deep
 # learning model.
 #
-# Author: SciWhy Lab
+# Author: SciWhy
 # Last Updated: August 25, 2025
 # ==============================================================================
 
@@ -35,7 +35,7 @@ REFERENCE_FILE_ID = "1-DSpHwN4TbFvGsYEv-UboB4yrvWPKDZo"
 MODEL_FILE_ID = "13N99OC_fplCKZHz2H52AFQaSeAI1Ai-v"
 MPGEM_SAMPLES_FILE_ID = "1-lFwC8w_lNDLmxVsfJLQdjm9bcm5uNuO"
 VIDEO_FILE_ID = "1Pzoj2inI9Y5pqltsqLQnl1QOLD-Wa6tL"
-BACKGROUND_IMAGE_FILE = "my_background.jpg"
+BACKGROUND_VIDEO_FILE = "dna_background.mp4" # Renamed from BACKGROUND_IMAGE_FILE
 
 # --------------------
 # DEEP LEARNING CUSTOM OBJECTS
@@ -48,18 +48,50 @@ get_custom_objects().update({'custom_activation': Activation(custom_activation)}
 # UI STYLING & APPEARANCE
 # ------------------------------------------------------------------------------
 @st.cache_data
-def get_img_as_base64(file):
-    with open(file, "rb") as f: data = f.read()
-    return base64.b64encode(data).decode()
+def get_video_as_base64(file):
+    try:
+        with open(file, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except FileNotFoundError:
+        st.warning(f"Background video file '{file}' not found. No background will be shown.")
+        return None
 
 def load_css_and_background():
-    try: img = get_img_as_base64(BACKGROUND_IMAGE_FILE)
-    except FileNotFoundError: st.warning(f"'{BACKGROUND_IMAGE_FILE}' not found."); img = None
+    video_base64 = get_video_as_base64(BACKGROUND_VIDEO_FILE)
+    
+    video_html = f"""
+         <video autoplay loop muted playsinline id="background-video">
+             <source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
+         </video>
+    """ if video_base64 else ""
 
     st.markdown(
         f"""
+        {video_html}
         <style>
-        /* --- Animation Keyframes --- */
+        #background-video {{
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -2;
+            filter: brightness(0.4); /* Darken the video to make text readable */
+        }}
+        /* Add a dark overlay on top of the video */
+        .stApp::before {{
+            content: "";
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.3);
+            z-index: -1;
+        }}
         @keyframes fadeInUp {{ from {{ opacity: 0; transform: translateY(30px); }} to {{ opacity: 1; transform: translateY(0); }} }}
         @keyframes pulse {{
             0% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }}
@@ -79,12 +111,6 @@ def load_css_and_background():
             50% {{ background-position: 100% 50%; }}
             100% {{ background-position: 0% 50%; }}
         }}
-
-        /* --- Main App Styling --- */
-        .stApp {{
-            {f'''background-image: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("data:image/jpeg;base64,{img}");''' if img else "background-color: #0e1117;"}
-            background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;
-        }}
         .main .block-container {{ background-color: transparent !important; }}
         .header-section, .stTabs, .stExpander, .st-emotion-cache-1jicfl2, [data-testid="stAlert"] {{
             background: rgba(28, 43, 56, 0.65); backdrop-filter: blur(12px);
@@ -94,8 +120,6 @@ def load_css_and_background():
         }}
         [data-testid="stAlert"] {{ padding: 1rem 1.5rem !important; }}
         h1, h2, h3, p, .stMarkdown, label {{ color: #ffffff; }}
-        
-        /* --- Simplified Header Style --- */
         .app-header {{ text-align: center; margin-bottom: 3rem; }}
         .main-title {{
             font-size: 4.5rem; font-weight: 800; position: relative;
@@ -111,8 +135,6 @@ def load_css_and_background():
             border-radius: 2px; animation: draw-line 1.2s ease-out 0.5s forwards;
         }}
         .main-subtitle {{ font-size: 1.5rem; color: #a0b0c0; }}
-        
-        /* --- Primary Action Button Style (Green/Teal) --- */
         .stButton>button {{
             background: linear-gradient(135deg, #10b981 0%, #6ee7b7 100%);
             color: white; font-weight: bold; font-size: 16px;
@@ -120,19 +142,13 @@ def load_css_and_background():
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;
         }}
         .stButton>button:hover {{ transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }}
-        
         .stTabs [data-baseweb="tab-list"] {{ gap: 12px; }}
         .stTabs [data-baseweb="tab"] {{ background-color: transparent; border-radius: 8px; padding: 10px 16px; color: #a0b0c0; transition: all 0.2s ease; }}
         .stTabs [aria-selected="true"] {{ background: rgba(220, 53, 69, 0.3); color: #ffffff; font-weight: bold; }}
-        
-        /* --- ADVANCED Floating Action Button Styles (Red & White Theme) --- */
-        #fab-container {{
-            position: fixed; bottom: 40px; right: 40px; z-index: 1000;
-        }}
+        #fab-container {{ position: fixed; bottom: 40px; right: 40px; z-index: 1000; }}
         #fab-container .stButton>button {{
             background: linear-gradient(135deg, #dc3545 0%, #f8f9fa 100%) !important;
-            color: #343a40 !important;
-            text-shadow: 0 0 2px #ffffff;
+            color: #343a40 !important; text-shadow: 0 0 2px #ffffff;
             background-size: 300% 300%;
             animation: pulse 2.5s infinite, gradient-shift 8s ease infinite;
             width: 65px; height: 65px; border-radius: 50%; font-size: 30px; padding: 0;
@@ -141,15 +157,6 @@ def load_css_and_background():
             transform: translateY(-5px) rotate(10deg);
             box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.4);
         }}
-        .fab-text {{
-            visibility: hidden; width: 150px; background-color: #333; color: #fff;
-            text-align: center; border-radius: 6px; padding: 5px 0;
-            position: absolute; z-index: 1; bottom: 25%; right: 120%;
-            opacity: 0; transition: opacity 0.3s, transform 0.3s;
-            transform: translateX(10px);
-        }}
-        #fab-container:hover .fab-text {{ visibility: visible; opacity: 1; transform: translateX(0); }}
-        
         .popup-container {{
             position: fixed; bottom: 120px; right: 40px; width: 350px; z-index: 999;
             animation: fadeInUp 0.5s ease-in-out;
@@ -162,23 +169,12 @@ def load_css_and_background():
             background: rgba(255, 255, 255, 0.1) !important; border-color: #ffffff !important;
             color: #ffffff !important;
         }}
-        
-        /* --- Styles for "Industry Level" Icons in Pop-up --- */
-        .popup-header {{
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }}
+        .popup-header {{ display: flex; align-items: center; justify-content: flex-start; }}
         .popup-header svg {{
-            width: 24px; height: 24px;
-            stroke: #dc3545; /* Themed red color for the icon stroke */
-            stroke-width: 2;
-            margin-right: 10px; /* Space between icon and text */
+            width: 24px; height: 24px; stroke: #dc3545;
+            stroke-width: 2; margin-right: 10px;
         }}
-        .popup-header h3 {{
-            margin: 0; /* Remove default margins from header text */
-            font-size: 1.25rem;
-        }}
+        .popup-header h3 {{ margin: 0; font-size: 1.25rem; }}
         </style>
         """,
         unsafe_allow_html=True
@@ -260,10 +256,9 @@ def contact_popup():
                 </div>
             """, unsafe_allow_html=True)
             st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>This application is maintained by the SciWhy team. For any inquiries, please feel free to reach out.</p>", unsafe_allow_html=True)
-            st.markdown('**Email:** <a href="mailto:shandar@sciwhylab.org">shandar@sciwhylab.org</a>', unsafe_allow_html=True)
+            st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
             st.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
             st.divider()
-
             st.markdown("""
                 <div class="popup-header">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -273,7 +268,6 @@ def contact_popup():
             st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>Encountered a bug? Please open an issue on our GitHub page.</p>", unsafe_allow_html=True)
             st.link_button("Submit an Issue", "https://github.com/SougataJana/gini/issues/new")
             st.divider()
-
             st.markdown("""
                 <div class="popup-header">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -283,7 +277,6 @@ def contact_popup():
             st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>Learn more about our research and other projects.</p>", unsafe_allow_html=True)
             st.link_button("Visit Shandarlab", "http://shandarslab.org")
             st.markdown("<br>", unsafe_allow_html=True)
-            
             st.markdown('<div class="close-button-container">', unsafe_allow_html=True)
             if st.button("Close", key="close_contact_popup", use_container_width=True):
                 st.session_state.show_contact = False
@@ -471,7 +464,9 @@ with tab5:
     video_path = get_video_path()
     if video_path:
         st.video(video_path)
+
     st.markdown("Welcome to the MPGEM Gene Expression Predictor! This tutorial will guide you through each step of the application.")
+
     st.subheader("Step 1: » Upload & Validate")
     st.markdown(
         """
