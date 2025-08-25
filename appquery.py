@@ -3,7 +3,7 @@
 # A Streamlit web application for gene expression prediction using a deep
 # learning model.
 #
-# Author: SciWhy
+# Author: SciWhy Lab
 # Last Updated: August 25, 2025
 # ==============================================================================
 
@@ -260,7 +260,7 @@ def contact_popup():
                 </div>
             """, unsafe_allow_html=True)
             st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>This application is maintained by the SciWhy team. For any inquiries, please feel free to reach out.</p>", unsafe_allow_html=True)
-            st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com">contact@sciwhy.org</a>', unsafe_allow_html=True)
+            st.markdown('**Email:** <a href="mailto:sougataj1@gmail.com"></a>', unsafe_allowshandar@sciwhylab.org _html=True)
             st.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
             st.divider()
 
