@@ -259,7 +259,7 @@ def contact_popup():
                     <h3>Contact & Support</h3>
                 </div>
             """, unsafe_allow_html=True)
-            st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>This application is maintained by the SciWhy team. For any inquiries, please feel free to reach out.</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 0.9rem; color: #a0b0c0;'>This application is maintained by the SciWhyLab team. For any inquiries, please feel free to reach out.</p>", unsafe_allow_html=True)
             st.markdown('**Email:** <a href="mailto:shandar@sciwhylab.org">shandar@sciwhylab.org</a>', unsafe_allow_html=True)
             st.markdown("**Project GitHub:** [SougataJana/gini](https://github.com/SougataJana/gini)")
             st.divider()
@@ -522,4 +522,4 @@ st.markdown('</div>', unsafe_allow_html=True)
 # --- FOOTER ---
 st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: gray;'>Powered by SciWhy</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: gray;'>Powered by SciWhyLab</p>", unsafe_allow_html=True)
